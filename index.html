@@ -1,806 +1,853 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
-  <title>Monthly Expense Tracker</title>
-  <!-- Bootstrap CSS -->
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
-  <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <!-- Font Awesome -->
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-  <style>
-    :root {
-      --header-color: #4f46e5;
-      --budget-color: #059669;
-      --summary-color: #0891b2;
-      --expense-color: #dc2626;
-      --recent-color: #7c3aed;
-      --category-color: #ea580c;
-      --vendor-color: #be185d;
-      --weekly-color: #0d9488;
-      --monthly-color: #7c2d12;
-      --download-color: #374151;
-      
-      --success-color: #10b981;
-      --warning-color: #f59e0b;
-      --danger-color: #ef4444;
-      --background-color: #f8fafc;
-      --card-background: #ffffff;
-      --text-primary: #1f2937;
-      --text-secondary: #6b7280;
-      --border-color: #e5e7eb;
-      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: 'Inter', sans-serif;
-      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 50%, #fbbf24 100%);
-      min-height: 100vh;
-      margin: 0;
-      padding: 0;
-      color: var(--text-primary);
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    .main-container {
-      background: var(--background-color);
-      min-height: 100vh;
-      padding: 1rem;
-      margin: 0;
-    }
-
-    /* Header Styles */
-    .header {
-      background: linear-gradient(135deg, var(--header-color) 0%, #6366f1 100%);
-      color: white;
-      padding: 1.5rem 1rem;
-      border-radius: 1rem;
-      margin-bottom: 1.5rem;
-      box-shadow: var(--shadow-lg);
-      text-align: center;
-    }
-
-    .header h1 {
-      font-size: 1.5rem;
-      font-weight: 600;
-      margin: 0;
-      text-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-
-    /* Card Styles */
-    .card {
-      background: var(--card-background);
-      border: none;
-      border-radius: 1rem;
-      box-shadow: var(--shadow);
-      margin-bottom: 1.5rem;
-      overflow: hidden;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-
-    .card:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-lg);
-    }
-
-    .card-header {
-      color: white;
-      padding: 1rem 1.5rem;
-      border: none;
-      font-weight: 600;
-      font-size: 1.1rem;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    /* Different colors for each section */
-    .budget-section .card-header {
-      background: linear-gradient(135deg, var(--budget-color) 0%, #10b981 100%);
-    }
-
-    .summary-section .card-header {
-      background: linear-gradient(135deg, var(--summary-color) 0%, #0ea5e9 100%);
-    }
-
-    .expense-section .card-header {
-      background: linear-gradient(135deg, var(--expense-color) 0%, #ef4444 100%);
-    }
-
-    .recent-section .card-header {
-      background: linear-gradient(135deg, var(--recent-color) 0%, #8b5cf6 100%);
-    }
-
-    .category-section .card-header {
-      background: linear-gradient(135deg, var(--category-color) 0%, #f97316 100%);
-    }
-
-    .vendor-section .card-header {
-      background: linear-gradient(135deg, var(--vendor-color) 0%, #ec4899 100%);
-    }
-
-    .weekly-section .card-header {
-      background: linear-gradient(135deg, var(--weekly-color) 0%, #14b8a6 100%);
-    }
-
-    .monthly-section .card-header {
-      background: linear-gradient(135deg, var(--monthly-color) 0%, #a16207 100%);
-    }
-
-    .card-body {
-      padding: 1.5rem;
-    }
-
-    /* Form Styles */
-    .form-control, .form-select {
-      border: 2px solid var(--border-color);
-      border-radius: 0.75rem;
-      padding: 0.875rem 1rem;
-      font-size: 1rem;
-      transition: all 0.2s ease;
-      background: white;
-      min-height: 50px;
-    }
-
-    .form-control:focus, .form-select:focus {
-      border-color: var(--budget-color);
-      box-shadow: 0 0 0 0.2rem rgba(5, 150, 105, 0.25);
-      outline: none;
-    }
-
-    .form-label {
-      font-weight: 500;
-      color: var(--text-primary);
-      margin-bottom: 0.5rem;
-      font-size: 0.9rem;
-    }
-
-    .input-group {
-      border-radius: 0.75rem;
-      overflow: hidden;
-    }
-
-    .input-group-text {
-      background: var(--budget-color);
-      color: white;
-      border: none;
-      font-weight: 600;
-      padding: 0.875rem 1rem;
-      min-height: 50px;
-      display: flex;
-      align-items: center;
-    }
-
-    /* Button Styles */
-    .btn {
-      border-radius: 0.75rem;
-      padding: 0.875rem 1.5rem;
-      font-weight: 500;
-      transition: all 0.2s ease;
-      border: none;
-      min-height: 50px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .btn-primary {
-      background: linear-gradient(135deg, var(--budget-color) 0%, #10b981 100%);
-      color: white;
-    }
-
-    .btn-primary:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(5, 150, 105, 0.4);
-    }
-
-    .btn-success {
-      background: var(--success-color);
-      color: white;
-    }
-
-    .btn-success:hover {
-      background: #38a169;
-      transform: translateY(-1px);
-    }
-
-    .btn-warning {
-      background: var(--warning-color);
-      color: white;
-    }
-
-    .btn-warning:hover {
-      background: #dd6b20;
-    }
-
-    .btn-danger {
-      background: var(--danger-color);
-      color: white;
-    }
-
-    .btn-danger:hover {
-      background: #e53e3e;
-    }
-
-    .btn-outline-success {
-      border: 2px solid var(--success-color);
-      color: var(--success-color);
-      background: white;
-    }
-
-    .btn-outline-success:hover {
-      background: var(--success-color);
-      color: white;
-    }
-
-    .btn-outline-danger {
-      border: 2px solid var(--danger-color);
-      color: var(--danger-color);
-      background: white;
-    }
-
-    .btn-outline-danger:hover {
-      background: var(--danger-color);
-      color: white;
-    }
-
-    .btn-sm {
-      padding: 0.5rem 1rem;
-      font-size: 0.875rem;
-      min-height: 40px;
-    }
-
-    /* Budget Summary */
-    .budget-summary {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 1rem;
-      margin-top: 1rem;
-    }
-
-    .budget-item {
-      background: linear-gradient(135deg, rgba(5, 150, 105, 0.1) 0%, rgba(16, 185, 129, 0.1) 100%);
-      padding: 1rem;
-      border-radius: 0.75rem;
-      text-align: center;
-      border: 2px solid rgba(5, 150, 105, 0.2);
-    }
-
-    .budget-item .amount {
-      font-size: 1.2rem;
-      font-weight: 600;
-      color: var(--budget-color);
-      margin-bottom: 0.25rem;
-    }
-
-    .budget-item .label {
-      font-size: 0.8rem;
-      color: var(--text-secondary);
-      font-weight: 500;
-    }
-
-    /* Status Colors */
-    .status-green { color: var(--success-color) !important; }
-    .status-orange { color: var(--warning-color) !important; }
-    .status-red { color: var(--danger-color) !important; }
-
-    /* Table Styles */
-    .table-responsive {
-      border-radius: 0.75rem;
-      overflow: hidden;
-      box-shadow: var(--shadow);
-    }
-
-    .table {
-      margin: 0;
-      background: white;
-    }
-
-    .table th {
-      color: white;
-      border: none;
-      font-weight: 600;
-      padding: 1rem 0.75rem;
-      font-size: 0.9rem;
-    }
-
-    /* Different table header colors for each section */
-    .budget-section .table th, .summary-section .table th {
-      background: var(--summary-color);
-    }
-
-    .recent-section .table th {
-      background: var(--recent-color);
-    }
-
-    .category-section .table th {
-      background: var(--category-color);
-    }
-
-    .vendor-section .table th {
-      background: var(--vendor-color);
-    }
-
-    .weekly-section .table th {
-      background: var(--weekly-color);
-    }
-
-    .monthly-section .table th {
-      background: var(--monthly-color);
-    }
-
-    .table td {
-      padding: 0.875rem 0.75rem;
-      border-color: var(--border-color);
-      vertical-align: middle;
-      font-size: 0.9rem;
-    }
-
-    .table tbody tr:hover {
-      background-color: rgba(156, 163, 175, 0.05);
-    }
-
-    /* Download Buttons */
-    .download-section {
-      display: flex;
-      gap: 1rem;
-      justify-content: center;
-      margin: 2rem 0;
-    }
-
-    /* Mobile Responsive */
-    @media (max-width: 768px) {
-      .main-container {
-        padding: 0.5rem;
-      }
-
-      .header {
-        padding: 1rem;
-        margin-bottom: 1rem;
-      }
-
-      .header h1 {
-        font-size: 1.25rem;
-      }
-
-      .card-body {
-        padding: 1rem;
-      }
-
-      .budget-summary {
-        grid-template-columns: 1fr;
-        gap: 0.75rem;
-      }
-
-      .budget-item {
-        padding: 0.75rem;
-      }
-
-      .budget-item .amount {
-        font-size: 1rem;
-      }
-
-      .form-control, .form-select, .btn {
-        min-height: 48px;
-        font-size: 16px; /* Prevents zoom on iOS */
-      }
-
-      .table-responsive {
-        font-size: 0.8rem;
-      }
-
-      .table th, .table td {
-        padding: 0.5rem 0.25rem;
-        font-size: 0.8rem;
-      }
-
-      .download-section {
-        flex-direction: column;
-        gap: 0.75rem;
-      }
-
-      .btn-sm {
-        min-height: 36px;
-        font-size: 0.75rem;
-        padding: 0.375rem 0.75rem;
-      }
-    }
-
-    @media (max-width: 480px) {
-      .main-container {
-        padding: 0.25rem;
-      }
-
-      .card {
-        margin-bottom: 1rem;
-      }
-
-      .budget-summary {
-        gap: 0.5rem;
-      }
-
-      .budget-item {
-        padding: 0.5rem;
-      }
-
-      .budget-item .amount {
-        font-size: 0.9rem;
-      }
-
-      .budget-item .label {
-        font-size: 0.7rem;
-      }
-    }
-
-    /* Animation for loading */
-    .card {
-      animation: slideUp 0.3s ease-out;
-    }
-
-    @keyframes slideUp {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    /* Improved form layout for mobile */
-    .form-row {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 1rem;
-      margin-bottom: 1.5rem;
-    }
-
-    @media (min-width: 576px) {
-      .form-row {
-        grid-template-columns: 1fr 1fr;
-      }
-    }
-
-    @media (min-width: 768px) {
-      .form-row {
-        grid-template-columns: 2fr 2fr 1fr 2fr 1fr;
-        align-items: end;
-      }
-    }
-
-    /* Touch-friendly elements */
-    .btn, .form-control, .form-select {
-      -webkit-appearance: none;
-      -moz-appearance: none;
-      appearance: none;
-    }
-
-    /* Prevent zoom on number inputs */
-    input[type="number"] {
-      font-size: 16px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Tracker Pro</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .header h1 {
+            color: #2d3748;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #718096;
+            font-size: 1.1rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            gap: 12px;
+        }
+
+        .card-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        /* Budget Section */
+        .budget-card .card-icon {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .budget-input {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .currency-symbol {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #4facfe;
+        }
+
+        .budget-field {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+
+        .budget-field:focus {
+            outline: none;
+            border-color: #4facfe;
+            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+        }
+
+        .set-budget-btn {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .set-budget-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(79, 172, 254, 0.3);
+        }
+
+        /* Summary Cards */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .summary-item {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .summary-label {
+            font-size: 0.9rem;
+            color: #64748b;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .summary-value {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #2d3748;
+        }
+
+        .budget-value { color: #4facfe; }
+        .spent-value { color: #f56565; }
+        .remaining-value { color: #48bb78; }
+
+        /* Add Expense Section */
+        .expense-card .card-icon {
+            background: linear-gradient(135deg, #ff6b6b 0%, #feca57 100%);
+            color: white;
+        }
+
+        .expense-form {
+            display: grid;
+            gap: 15px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        .form-input, .form-select {
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: #ff6b6b;
+            box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1);
+        }
+
+        .add-expense-btn {
+            background: linear-gradient(135deg, #ff6b6b 0%, #feca57 100%);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+
+        .add-expense-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.3);
+        }
+
+        /* Recent Expenses */
+        .recent-card .card-icon {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            color: #2d3748;
+        }
+
+        .expenses-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+
+        .expenses-table th, .expenses-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .expenses-table th {
+            background: #f8fafc;
+            font-weight: 600;
+            color: #4a5568;
+            font-size: 0.9rem;
+        }
+
+        .expense-row:hover {
+            background: #f8fafc;
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            margin-right: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .edit-btn {
+            background: #4299e1;
+            color: white;
+        }
+
+        .delete-btn {
+            background: #f56565;
+            color: white;
+        }
+
+        .action-btn:hover {
+            transform: scale(1.05);
+        }
+
+        /* Statistics Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        .categories-card .card-icon {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .vendors-card .card-icon {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .weekly-card .card-icon {
+            background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+            color: white;
+        }
+
+        .monthly-card .card-icon {
+            background: linear-gradient(135deg, #fdbb2d 0%, #22c1c3 100%);
+            color: white;
+        }
+
+        .stats-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .stats-table th, .stats-table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .stats-table th {
+            background: #f8fafc;
+            font-weight: 600;
+            color: #4a5568;
+            font-size: 0.9rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #64748b;
+        }
+
+        .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .summary-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            .expenses-table, .stats-table {
+                font-size: 0.9rem;
+            }
+
+            .expenses-table th, .expenses-table td,
+            .stats-table th, .stats-table td {
+                padding: 8px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .summary-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .expenses-table, .stats-table {
+                font-size: 0.8rem;
+            }
+
+            .header h1 {
+                font-size: 1.7rem;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card {
+            animation: fadeInUp 0.6s ease forwards;
+        }
+
+        .card:nth-child(2) { animation-delay: 0.1s; }
+        .card:nth-child(3) { animation-delay: 0.2s; }
+        .card:nth-child(4) { animation-delay: 0.3s; }
+    </style>
 </head>
 <body>
-  <div class="main-container">
-    <!-- Header -->
-    <div class="header">
-      <h1 id="headerTitle"><i class="fas fa-wallet me-2"></i></h1>
-    </div>
-
-    <!-- Budget Input -->
-    <div class="card budget-section">
-      <div class="card-header">
-        <i class="fas fa-piggy-bank"></i>
-        Set Monthly Budget
-      </div>
-      <div class="card-body">
-        <div class="input-group">
-          <span class="input-group-text">₹</span>
-          <input type="number" id="budgetInput" class="form-control" placeholder="Enter budget" min="0">
-          <button id="setBudgetBtn" class="btn btn-primary">Set Budget</button>
+    <div class="container">
+        <div class="header">
+            <h1>💰 Expense Tracker Pro</h1>
+            <p>Take control of your finances with smart budget management</p>
         </div>
-      </div>
-    </div>
 
-    <!-- Budget Summary -->
-    <div class="card summary-section">
-      <div class="card-header">
-        <i class="fas fa-chart-pie"></i>
-        Budget Summary
-      </div>
-      <div class="card-body">
-        <div class="budget-summary">
-          <div class="budget-item">
-            <div class="amount">₹<span id="budgetDisplay">0</span></div>
-            <div class="label">Budget</div>
-          </div>
-          <div class="budget-item">
-            <div class="amount">₹<span id="spentDisplay">0</span></div>
-            <div class="label">Total Spent</div>
-          </div>
-          <div class="budget-item">
-            <div class="amount">₹<span id="remainingDisplay">0</span></div>
-            <div class="label">Remaining</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Add Expense -->
-    <div class="card expense-section">
-      <div class="card-header">
-        <i class="fas fa-plus-circle"></i>
-        Add Expense
-      </div>
-      <div class="card-body">
-        <form id="expenseForm">
-          <div class="form-row">
-            <div>
-              <label class="form-label">Category</label>
-              <select id="category" class="form-select">
-                <option>Grocery</option><option>Bills</option><option>Online shopping</option><option>Travelling</option>
-                <option>Food</option><option>Medical expenses</option><option>Debt</option><option>Petrol</option>
-                <option>Home expenses other than grocery</option><option>Maintenance</option><option>EMI</option>
-                <option>Investment</option><option>Entertainment</option><option>Others</option>
-              </select>
+        <div class="grid">
+            <!-- Budget Section -->
+            <div class="card budget-card">
+                <div class="card-header">
+                    <div class="card-icon">💳</div>
+                    <h2 class="card-title">Set Monthly Budget</h2>
+                </div>
+                <div class="budget-input">
+                    <span class="currency-symbol">₹</span>
+                    <input type="number" id="budgetAmount" class="budget-field" placeholder="Enter your budget" min="0">
+                    <button class="set-budget-btn" onclick="setBudget()">Set Budget</button>
+                </div>
             </div>
-            <div>
-              <label class="form-label">Vendor</label>
-              <input type="text" id="vendor" class="form-control" required>
+
+            <!-- Budget Summary -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon" style="background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); color: white;">📊</div>
+                    <h2 class="card-title">Budget Summary</h2>
+                </div>
+                <div class="summary-grid">
+                    <div class="summary-item">
+                        <div class="summary-label">Budget</div>
+                        <div class="summary-value budget-value" id="budgetDisplay">₹0</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-label">Total Spent</div>
+                        <div class="summary-value spent-value" id="spentDisplay">₹0</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-label">Remaining</div>
+                        <div class="summary-value remaining-value" id="remainingDisplay">₹0</div>
+                    </div>
+                </div>
             </div>
-            <div>
-              <label class="form-label">Amount (₹)</label>
-              <input type="number" id="amount" class="form-control" required min="0.01" step="0.01">
+        </div>
+
+        <!-- Add Expense -->
+        <div class="card expense-card">
+            <div class="card-header">
+                <div class="card-icon">➕</div>
+                <h2 class="card-title">Add Expense</h2>
             </div>
-            <div>
-              <label class="form-label">Note</label>
-              <input type="text" id="note" class="form-control">
+            <div class="expense-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Category</label>
+                        <select id="category" class="form-select">
+                            <option value="">Select Category</option>
+                            <option value="Food">🍽️ Food & Dining</option>
+                            <option value="Transport">🚗 Transportation</option>
+                            <option value="Shopping">🛍️ Shopping</option>
+                            <option value="Bills">💡 Bills & Utilities</option>
+                            <option value="Entertainment">🎬 Entertainment</option>
+                            <option value="Healthcare">🏥 Healthcare</option>
+                            <option value="Education">📚 Education</option>
+                            <option value="Other">📦 Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Vendor</label>
+                        <input type="text" id="vendor" class="form-input" placeholder="Where did you spend?">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Amount (₹)</label>
+                        <input type="number" id="amount" class="form-input" placeholder="0.00" min="0" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Date</label>
+                        <input type="date" id="expenseDate" class="form-input">
+                    </div>
+                </div>
+                <button class="add-expense-btn" onclick="addExpense()">Add Expense</button>
             </div>
-            <div>
-              <label class="form-label" style="opacity: 0;">Add</label>
-              <button type="submit" class="btn btn-success w-100">
-                <i class="fas fa-plus me-2"></i>Add
-              </button>
+        </div>
+
+        <!-- Recent Expenses -->
+        <div class="card recent-card">
+            <div class="card-header">
+                <div class="card-icon">📝</div>
+                <h2 class="card-title">Recent Expenses</h2>
             </div>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <!-- Recent Expenses -->
-    <div class="card recent-section">
-      <div class="card-header">
-        <i class="fas fa-history"></i>
-        Recent Expenses
-      </div>
-      <div class="card-body">
-        <div class="table-responsive">
-          <table class="table table-sm">
-            <thead><tr><th>Date</th><th>Time</th><th>Category</th><th>Vendor</th><th>Amount</th><th>Modify</th><th>Delete</th></tr></thead>
-            <tbody id="expenseList"></tbody>
-          </table>
+            <div id="expensesContainer">
+                <div class="empty-state">
+                    <div class="empty-icon">📊</div>
+                    <p>No expenses recorded yet. Add your first expense above!</p>
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
 
-    <!-- Top 3 Categories -->
-    <div class="card category-section">
-      <div class="card-header">
-        <i class="fas fa-trophy"></i>
-        Top 3 Categories
-      </div>
-      <div class="card-body">
-        <div class="table-responsive">
-          <table class="table table-sm">
-            <thead><tr><th>Rank</th><th>Category</th><th>Amount</th><th>%</th></tr></thead>
-            <tbody id="topCategories"></tbody>
-          </table>
+        <!-- Statistics -->
+        <div class="stats-grid">
+            <div class="card categories-card">
+                <div class="card-header">
+                    <div class="card-icon">🏆</div>
+                    <h2 class="card-title">Top 3 Categories</h2>
+                </div>
+                <div id="categoriesStats">
+                    <div class="empty-state">
+                        <div class="empty-icon">📈</div>
+                        <p>Statistics will appear after adding expenses</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card vendors-card">
+                <div class="card-header">
+                    <div class="card-icon">🏪</div>
+                    <h2 class="card-title">Top 3 Vendors</h2>
+                </div>
+                <div id="vendorsStats">
+                    <div class="empty-state">
+                        <div class="empty-icon">🏪</div>
+                        <p>Vendor statistics will appear here</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card weekly-card">
+                <div class="card-header">
+                    <div class="card-icon">📅</div>
+                    <h2 class="card-title">Weekly Summary</h2>
+                </div>
+                <div id="weeklyStats">
+                    <div class="empty-state">
+                        <div class="empty-icon">📊</div>
+                        <p>Weekly breakdown coming soon</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card monthly-card">
+                <div class="card-header">
+                    <div class="card-icon">📆</div>
+                    <h2 class="card-title">Monthly Summary</h2>
+                </div>
+                <div id="monthlyStats">
+                    <div class="empty-state">
+                        <div class="empty-icon">📈</div>
+                        <p>Monthly overview will be displayed here</p>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
     </div>
 
-    <!-- Top 3 Vendors -->
-    <div class="card vendor-section">
-      <div class="card-header">
-        <i class="fas fa-store"></i>
-        Top 3 Vendors
-      </div>
-      <div class="card-body">
-        <div class="table-responsive">
-          <table class="table table-sm">
-            <thead><tr><th>Rank</th><th>Vendor</th><th>Amount</th><th>%</th></tr></thead>
-            <tbody id="topVendors"></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
+    <script>
+        let budget = 0;
+        let expenses = [];
 
-    <!-- Weekly Summary -->
-    <div class="card weekly-section">
-      <div class="card-header">
-        <i class="fas fa-calendar-week"></i>
-        Weekly Summary
-      </div>
-      <div class="card-body">
-        <div class="table-responsive">
-          <table class="table table-sm">
-            <thead><tr><th>Week</th><th>Period</th><th>Total Spent</th></tr></thead>
-            <tbody id="weeklySummary"></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
+        // Set today's date as default
+        document.getElementById('expenseDate').valueAsDate = new Date();
 
-    <!-- Monthly Summary -->
-    <div class="card monthly-section">
-      <div class="card-header">
-        <i class="fas fa-calendar-alt"></i>
-        Monthly Summary
-      </div>
-      <div class="card-body">
-        <div class="table-responsive">
-          <table class="table table-sm">
-            <thead><tr><th>Month</th><th>Total Spent</th><th>Top Category</th><th>%</th></tr></thead>
-            <tbody id="monthlySummary"></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
+        function setBudget() {
+            const budgetInput = document.getElementById('budgetAmount');
+            const amount = parseFloat(budgetInput.value);
+            
+            if (isNaN(amount) || amount <= 0) {
+                alert('Please enter a valid budget amount');
+                return;
+            }
+            
+            budget = amount;
+            updateDisplay();
+            budgetInput.value = '';
+            
+            // Add success feedback
+            const btn = document.querySelector('.set-budget-btn');
+            const originalText = btn.textContent;
+            btn.textContent = '✓ Budget Set!';
+            btn.style.background = 'linear-gradient(135deg, #48bb78 0%, #38a169 100%)';
+            
+            setTimeout(() => {
+                btn.textContent = originalText;
+                btn.style.background = 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)';
+            }, 2000);
+        }
 
-    <!-- Download Buttons -->
-    <div class="download-section">
-      <button id="exportCsvBtn" class="btn btn-outline-success">
-        <i class="fas fa-file-csv me-2"></i>Download CSV
-      </button>
-      <button id="exportPdfBtn" class="btn btn-outline-danger">
-        <i class="fas fa-file-pdf me-2"></i>Download PDF
-      </button>
-    </div>
+        function addExpense() {
+            const category = document.getElementById('category').value;
+            const vendor = document.getElementById('vendor').value;
+            const amount = parseFloat(document.getElementById('amount').value);
+            const date = document.getElementById('expenseDate').value;
+            
+            if (!category || !vendor || isNaN(amount) || amount <= 0 || !date) {
+                alert('Please fill all fields correctly');
+                return;
+            }
+            
+            const expense = {
+                id: Date.now(),
+                category,
+                vendor,
+                amount,
+                date,
+                time: new Date().toLocaleTimeString()
+            };
+            
+            expenses.unshift(expense);
+            updateDisplay();
+            clearForm();
+            
+            // Add success feedback
+            const btn = document.querySelector('.add-expense-btn');
+            const originalText = btn.textContent;
+            btn.textContent = '✓ Added!';
+            btn.style.background = 'linear-gradient(135deg, #48bb78 0%, #38a169 100%)';
+            
+            setTimeout(() => {
+                btn.textContent = originalText;
+                btn.style.background = 'linear-gradient(135deg, #ff6b6b 0%, #feca57 100%)';
+            }, 2000);
+        }
 
-  </div>
+        function clearForm() {
+            document.getElementById('category').value = '';
+            document.getElementById('vendor').value = '';
+            document.getElementById('amount').value = '';
+            document.getElementById('expenseDate').valueAsDate = new Date();
+        }
 
-  <!-- Scripts -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-  <script>
-    // Initialize header and data
-    function updateHeader() {
-      const header = document.getElementById('headerTitle');
-      const now = new Date();
-      header.innerHTML = '<i class="fas fa-wallet me-2"></i>' + now.toLocaleString('en-GB',{month:'long',year:'numeric'}) + ' Expense Tracker';
-    }
-    function getMonthKey(date){ return ('0'+(date.getMonth()+1)).slice(-2) + date.getFullYear(); }
-    const monthKey = getMonthKey(new Date());
-    let budget = 0;
+        function deleteExpense(id) {
+            if (confirm('Are you sure you want to delete this expense?')) {
+                expenses = expenses.filter(expense => expense.id !== id);
+                updateDisplay();
+            }
+        }
 
-    function loadBudget(){
-      const stored = localStorage.getItem('budget');
-      budget = stored? parseFloat(stored): 2000;
-      document.getElementById('budgetInput').value = budget;
-      updateSummary();
-    }
-    function setBudget(){
-      const val = parseFloat(document.getElementById('budgetInput').value)||2000;
-      budget = val;
-      localStorage.setItem('budget', budget);
-      updateSummary();
-    }
-    document.getElementById('setBudgetBtn').addEventListener('click', setBudget);
+        function editExpense(id) {
+            const expense = expenses.find(exp => exp.id === id);
+            if (expense) {
+                document.getElementById('category').value = expense.category;
+                document.getElementById('vendor').value = expense.vendor;
+                document.getElementById('amount').value = expense.amount;
+                document.getElementById('expenseDate').value = expense.date;
+                
+                deleteExpense(id);
+                
+                // Scroll to form
+                document.querySelector('.expense-card').scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'center' 
+                });
+            }
+        }
 
-    function loadExpenses(){
-      const data = localStorage.getItem('expenses_'+monthKey);
-      return data? JSON.parse(data): [];
-    }
-    function saveExpenses(arr){ localStorage.setItem('expenses_'+monthKey, JSON.stringify(arr)); }
+        function updateDisplay() {
+            const totalSpent = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+            const remaining = budget - totalSpent;
+            
+            document.getElementById('budgetDisplay').textContent = `₹${budget.toLocaleString()}`;
+            document.getElementById('spentDisplay').textContent = `₹${totalSpent.toLocaleString()}`;
+            document.getElementById('remainingDisplay').textContent = `₹${remaining.toLocaleString()}`;
+            
+            // Update remaining color based on budget status
+            const remainingElement = document.getElementById('remainingDisplay');
+            if (remaining < 0) {
+                remainingElement.style.color = '#f56565';
+            } else if (remaining < budget * 0.2) {
+                remainingElement.style.color = '#ed8936';
+            } else {
+                remainingElement.style.color = '#48bb78';
+            }
+            
+            updateExpensesTable();
+            updateStatistics();
+        }
 
-    document.getElementById('expenseForm').addEventListener('submit', e=>{
-      e.preventDefault();
-      const cat=document.getElementById('category').value;
-      const ven=document.getElementById('vendor').value;
-      const amt=parseFloat(document.getElementById('amount').value);
-      const note=document.getElementById('note').value;
-      const now=new Date();
-      const exp={id:Date.now(),date:now.toLocaleDateString('en-GB'),time:now.toLocaleTimeString('en-GB'),category:cat,vendor:ven,amount:amt,note};
-      const arr=loadExpenses();arr.push(exp);saveExpenses(arr);
-      e.target.reset(); renderAll();
-    });
+        function updateExpensesTable() {
+            const container = document.getElementById('expensesContainer');
+            
+            if (expenses.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📊</div>
+                        <p>No expenses recorded yet. Add your first expense above!</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let tableHTML = `
+                <table class="expenses-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Category</th>
+                            <th>Vendor</th>
+                            <th>Amount</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            expenses.forEach(expense => {
+                tableHTML += `
+                    <tr class="expense-row">
+                        <td>${new Date(expense.date).toLocaleDateString()}</td>
+                        <td>${expense.time}</td>
+                        <td>${expense.category}</td>
+                        <td>${expense.vendor}</td>
+                        <td>₹${expense.amount.toLocaleString()}</td>
+                        <td>
+                            <button class="action-btn edit-btn" onclick="editExpense(${expense.id})">Edit</button>
+                            <button class="action-btn delete-btn" onclick="deleteExpense(${expense.id})">Delete</button>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            tableHTML += '</tbody></table>';
+            container.innerHTML = tableHTML;
+        }
 
-    function updateSummary(){
-      const arr=loadExpenses();
-      const spent=arr.reduce((s,x)=>s+x.amount,0);
-      document.getElementById('budgetDisplay').textContent=budget.toFixed(2);
-      const spentEl=document.getElementById('spentDisplay');
-      spentEl.textContent=spent.toFixed(2);
-      spentEl.className=spent>budget*0.9?'status-red':spent>budget*0.5?'status-orange':'status-green';
-      document.getElementById('remainingDisplay').textContent=(budget-spent).toFixed(2);
-    }
+        function updateStatistics() {
+            updateCategoryStats();
+            updateVendorStats();
+        }
 
-    function renderExpenseList(){
-      const arr=loadExpenses().slice(-5).reverse();
-      const body=document.getElementById('expenseList'); body.innerHTML='';
-      arr.forEach(e=>{
-        body.innerHTML+=`<tr>`+
-          `<td>${e.date}</td><td>${e.time}</td><td>${e.category}</td><td>${e.vendor}</td><td>₹${e.amount.toFixed(2)}</td>`+
-          `<td><button class="btn btn-sm btn-warning" onclick="editExpense(${e.id})"><i class="fas fa-edit"></i></button></td>`+
-          `<td><button class="btn btn-sm btn-danger" onclick="deleteExpense(${e.id})"><i class="fas fa-trash"></i></button></td>`+
-        `</tr>`;
-      });
-    }
+        function updateCategoryStats() {
+            const container = document.getElementById('categoriesStats');
+            
+            if (expenses.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📈</div>
+                        <p>Statistics will appear after adding expenses</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const categoryTotals = {};
+            const totalSpent = expenses.reduce((sum, expense) => {
+                categoryTotals[expense.category] = (categoryTotals[expense.category] || 0) + expense.amount;
+                return sum + expense.amount;
+            }, 0);
+            
+            const sortedCategories = Object.entries(categoryTotals)
+                .sort(([,a], [,b]) => b - a)
+                .slice(0, 3);
+            
+            let tableHTML = `
+                <table class="stats-table">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Category</th>
+                            <th>Amount</th>
+                            <th>%</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            sortedCategories.forEach(([category, amount], index) => {
+                const percentage = ((amount / totalSpent) * 100).toFixed(1);
+                tableHTML += `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${category}</td>
+                        <td>₹${amount.toLocaleString()}</td>
+                        <td>${percentage}%</td>
+                    </tr>
+                `;
+            });
+            
+            tableHTML += '</tbody></table>';
+            container.innerHTML = tableHTML;
+        }
 
-    function renderTopCategories(){
-      const arr=loadExpenses();
-      const map={}; arr.forEach(e=>map[e.category]=(map[e.category]||0)+e.amount);
-      const total=arr.reduce((s,x)=>s+x.amount,0);
-      const items=Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,3);
-      const body=document.getElementById('topCategories'); body.innerHTML='';
-      items.forEach(([k,v],i)=>{ body.innerHTML+=`<tr><td>${i+1}</td><td>${k}</td><td>₹${v.toFixed(2)}</td><td>${((v/total*100)||0).toFixed(1)}%</td></tr>`; });
-    }
+        function updateVendorStats() {
+            const container = document.getElementById('vendorsStats');
+            
+            if (expenses.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">🏪</div>
+                        <p>Vendor statistics will appear here</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const vendorTotals = {};
+            const totalSpent = expenses.reduce((sum, expense) => {
+                vendorTotals[expense.vendor] = (vendorTotals[expense.vendor] || 0) + expense.amount;
+                return sum + expense.amount;
+            }, 0);
+            
+            const sortedVendors = Object.entries(vendorTotals)
+                .sort(([,a], [,b]) => b - a)
+                .slice(0, 3);
+            
+            let tableHTML = `
+                <table class="stats-table">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Vendor</th>
+                            <th>Amount</th>
+                            <th>%</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            sortedVendors.forEach(([vendor, amount], index) => {
+                const percentage = ((amount / totalSpent) * 100).toFixed(1);
+                tableHTML += `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${vendor}</td>
+                        <td>₹${amount.toLocaleString()}</td>
+                        <td>${percentage}%</td>
+                    </tr>
+                `;
+            });
+            
+            tableHTML += '</tbody></table>';
+            container.innerHTML = tableHTML;
+        }
 
-    function renderTopVendors(){
-      const arr=loadExpenses();
-      const map={}; arr.forEach(e=>map[e.vendor]=(map[e.vendor]||0)+e.amount);
-      const total=arr.reduce((s,x)=>s+x.amount,0);
-      const items=Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,3);
-      const body=document.getElementById('topVendors'); body.innerHTML='';
-      items.forEach(([k,v],i)=>{ body.innerHTML+=`<tr><td>${i+1}</td><td>${k}</td><td>₹${v.toFixed(2)}</td><td>${((v/total*100)||0).toFixed(1)}%</td></tr>`; });
-    }
-
-    function renderWeekly(){
-      const arr=loadExpenses();
-      const body=document.getElementById('weeklySummary'); body.innerHTML='';
-      for(let w=1;w<=5;w++){ const start=(w-1)*7+1,end=w*7;
-        const sum=arr.filter(e=>parseInt(e.date.split('/')[0])>=start&&parseInt(e.date.split('/')[0])<=end).reduce((s,x)=>s+x.amount,0);
-        body.innerHTML+=`<tr><td>${w}</td><td>${start}-${end}</td><td>₹${sum.toFixed(2)}</td></tr>`; }
-    }
-
-    function renderMonthly(){
-      const body=document.getElementById('monthlySummary'); body.innerHTML='';
-      const keys=Object.keys(localStorage).filter(k=>k.startsWith('expenses_'));
-      keys.sort().reverse().forEach(k=>{
-        const key=k.split('_')[1]; const arr=JSON.parse(localStorage.getItem(k));
-        const sum=arr.reduce((s,x)=>s+x.amount,0);
-        const map={}; arr.forEach(e=>map[e.category]=(map[e.category]||0)+e.amount);
-        const [topCat,topAmt]=Object.entries(map).sort((a,b)=>b[1]-a[1])[0]||['-',0];
-        const name=new Date(key.slice(2),key.slice(0,2)-1).toLocaleString('en-GB',{month:'short'});
-        body.innerHTML+=`<tr><td>${name}</td><td>₹${sum.toFixed(2)}</td><td>${topCat}</td><td>${((topAmt/sum*100)||0).toFixed(1)}%</td></tr>`;
-      });
-    }
-
-    function deleteExpense(id){ const arr=loadExpenses().filter(x=>x.id!==id); saveExpenses(arr); renderAll(); }
-    function editExpense(id){ const arr=loadExpenses(),exp=arr.find(x=>x.id===id); if(!exp)return;
-      document.getElementById('category').value=exp.category;
-      document.getElementById('vendor').value=exp.vendor;
-      document.getElementById('amount').value=exp.amount;
-      document.getElementById('note').value=exp.note;
-      deleteExpense(id);
-    }
-
-    document.getElementById('exportCsvBtn').addEventListener('click',()=>{
-      const arr=loadExpenses(); const csv=Papa.unparse(arr);
-      const blob=new Blob([csv],{type:'text/csv'}); const url=URL.createObjectURL(blob);
-      const a=document.createElement('a'); a.href=url; a.download=`expenses_${monthKey}.csv`; a.click(); URL.revokeObjectURL(url);
-    });
-    document.getElementById('exportPdfBtn').addEventListener('click',()=>{
-      const {jsPDF}=window.jspdf; const doc=new jsPDF(); const arr=loadExpenses();
-      const cols=["Date","Time","Category","Vendor","Note","Amount"]; const rows=arr.map(e=>[e.date,e.time,e.category,e.vendor,e.note,e.amount.toFixed(2)]);
-      doc.autoTable({head:[cols],body:rows}); doc.save(`expenses_${monthKey}.pdf`);
-    });
-
-    function renderArchive(){ /* omitted for brevity */ }
-
-    function renderAll(){ updateHeader(); loadBudget(); renderExpenseList(); updateSummary(); renderTopCategories(); renderTopVendors(); renderWeekly(); renderMonthly(); }
-    window.onload=renderAll;
-  </script>
+        // Initialize display
+        updateDisplay();
+    </script>
 </body>
 </html>
