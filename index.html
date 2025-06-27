@@ -5,32 +5,42 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Task Manager</title>
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
     body {
-      font-family: sans-serif;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       margin: 0;
-      background: #f3f6fd;
+      background: #eaf0f6;
       padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
     }
     .input-box {
       display: flex;
       gap: 10px;
       flex-wrap: wrap;
+      justify-content: center;
       margin-bottom: 20px;
     }
-    .input-box input {
-      flex: 1 1 60%;
+    .input-box input[type="text"] {
+      flex: 1 1 50%;
       padding: 10px;
       border: 2px solid #ccc;
       border-radius: 8px;
     }
-    .input-box select {
-      flex: 1 1 30%;
-      padding: 10px;
-      border: 2px solid #ccc;
-      border-radius: 8px;
+    .input-box .type-options {
+      flex: 1 1 100%;
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      margin-top: 10px;
+    }
+    .input-box .type-options label {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-weight: bold;
     }
     .add-btn {
       background: linear-gradient(to right, #6a11cb, #2575fc);
@@ -50,7 +60,10 @@
       background: white;
       border-radius: 12px;
       padding: 16px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
+    #list-section { border-left: 6px solid #4CAF50; }
+    #reminder-section { border-left: 6px solid #FF9800; }
     .section h3 {
       margin: 0 0 10px;
     }
@@ -58,11 +71,14 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 10px 0;
-      border-bottom: 1px solid #eee;
+      padding: 10px;
+      background: #f9f9f9;
+      margin-bottom: 8px;
+      border-radius: 6px;
+      cursor: grab;
     }
     .task:last-child {
-      border-bottom: none;
+      margin-bottom: 0;
     }
     .task-content {
       display: flex;
@@ -87,23 +103,29 @@
       font-size: 18px;
       cursor: pointer;
       color: #555;
-      margin-left: 5px;
     }
     .edit-input {
       border: 1px solid #ccc;
       padding: 4px;
       border-radius: 4px;
     }
+    .summary {
+      text-align: center;
+      margin-top: 20px;
+      font-weight: bold;
+      color: #333;
+    }
   </style>
 </head>
 <body>
+  <h1>🗂️ Life Task Manager</h1>
   <div class="input-box">
     <input type="text" id="task-input" placeholder="Add a new task...">
-    <select id="task-type">
-      <option value="list">List</option>
-      <option value="reminder">Reminder</option>
-    </select>
-    <button class="add-btn" id="add-task">+</button>
+    <div class="type-options">
+      <label><input type="radio" name="task-type" value="list" checked> List</label>
+      <label><input type="radio" name="task-type" value="reminder"> Reminder</label>
+      <button class="add-btn" id="add-task">+</button>
+    </div>
   </div>
 
   <div class="task-columns">
@@ -111,28 +133,33 @@
       <h3>🛒 Lists</h3>
       <div id="list-tasks"></div>
     </div>
-
     <div class="section" id="reminder-section">
       <h3>🔔 Reminders</h3>
       <div id="reminder-tasks"></div>
     </div>
   </div>
 
+  <div class="summary" id="summary"></div>
+
   <script>
     const input = document.getElementById("task-input");
-    const typeSelect = document.getElementById("task-type");
     const addBtn = document.getElementById("add-task");
 
-    addBtn.onclick = () => {
+    input.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") addTask();
+    });
+    addBtn.onclick = () => addTask();
+
+    function addTask() {
       const text = input.value.trim();
-      const type = typeSelect.value;
+      const type = document.querySelector('input[name="task-type"]:checked').value;
       if (!text) return;
       const tasks = getTasks();
       tasks.push({ text, done: false, type });
       saveTasks(tasks);
       input.value = "";
       renderTasks();
-    };
+    }
 
     function getTasks() {
       return JSON.parse(localStorage.getItem("tasks") || "[]");
@@ -146,17 +173,20 @@
       const tasks = getTasks();
       const lists = tasks.filter(t => t.type === "list");
       const reminders = tasks.filter(t => t.type === "reminder");
-
-      renderSection("list-tasks", lists);
-      renderSection("reminder-tasks", reminders);
+      renderSection("list-tasks", lists, "list");
+      renderSection("reminder-tasks", reminders, "reminder");
+      const completed = tasks.filter(t => t.done).length;
+      const pending = tasks.length - completed;
+      document.getElementById("summary").textContent = `${completed} completed • ${pending} remaining`;
     }
 
-    function renderSection(containerId, tasks) {
+    function renderSection(containerId, tasks, type) {
       const container = document.getElementById(containerId);
       container.innerHTML = "";
       tasks.forEach((task, index) => {
         const div = document.createElement("div");
         div.className = "task" + (task.done ? " completed" : "");
+        div.draggable = true;
 
         const span = document.createElement("span");
         span.textContent = task.text;
@@ -174,7 +204,6 @@
 
         const deleteBtn = document.createElement("button");
         deleteBtn.innerHTML = "❌";
-        deleteBtn.className = "delete-btn";
         deleteBtn.onclick = () => {
           const all = getTasks().filter(t => !(t.text === task.text && t.type === task.type));
           saveTasks(all);
@@ -210,6 +239,25 @@
 
         div.appendChild(content);
         div.appendChild(actions);
+
+        div.addEventListener("dragstart", (e) => {
+          e.dataTransfer.setData("text/plain", JSON.stringify({ text: task.text, type: task.type }));
+        });
+
+        div.addEventListener("dragover", (e) => e.preventDefault());
+
+        div.addEventListener("drop", (e) => {
+          e.preventDefault();
+          const draggedData = JSON.parse(e.dataTransfer.getData("text"));
+          const all = getTasks();
+          const draggedIndex = all.findIndex(t => t.text === draggedData.text && t.type === draggedData.type);
+          const targetIndex = all.findIndex(t => t.text === task.text && t.type === task.type);
+          const [moved] = all.splice(draggedIndex, 1);
+          all.splice(targetIndex, 0, moved);
+          saveTasks(all);
+          renderTasks();
+        });
+
         container.appendChild(div);
       });
     }
