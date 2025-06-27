@@ -16,7 +16,7 @@
       margin: 0;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       min-height: 100vh;
-      padding: 20px;
+      padding: 10px;
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       position: relative;
       overflow-x: hidden;
@@ -43,7 +43,7 @@
     }
     
     .container {
-      max-width: 800px;
+      max-width: 1000px;
       margin: 0 auto;
       position: relative;
       z-index: 2;
@@ -51,7 +51,7 @@
     
     .header {
       text-align: center;
-      margin-bottom: 30px;
+      margin-bottom: 15px;
       position: relative;
     }
     
@@ -59,14 +59,14 @@
       background: rgba(255, 255, 255, 0.15);
       backdrop-filter: blur(10px);
       border: 1px solid rgba(255, 255, 255, 0.2);
-      padding: 8px 16px;
-      border-radius: 20px;
+      padding: 4px 12px;
+      border-radius: 15px;
       display: inline-block;
-      font-size: 14px;
+      font-size: 12px;
       font-weight: 500;
       color: white;
-      margin-bottom: 15px;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      margin-bottom: 8px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
     }
     
     body.dark .date-display {
@@ -75,14 +75,14 @@
     }
     
     h1 {
-      font-size: 2.5rem;
+      font-size: 1.8rem;
       font-weight: 700;
       margin: 0;
       background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
-      text-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
       letter-spacing: -0.02em;
     }
     
@@ -97,10 +97,10 @@
       background: rgba(255, 255, 255, 0.95);
       backdrop-filter: blur(20px);
       border: 1px solid rgba(255, 255, 255, 0.3);
-      border-radius: 20px;
-      padding: 25px;
-      margin-bottom: 30px;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      border-radius: 15px;
+      padding: 15px;
+      margin-bottom: 15px;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
     
@@ -118,21 +118,21 @@
     .input-box {
       display: flex;
       flex-direction: column;
-      gap: 15px;
+      gap: 10px;
     }
     
     .input-row {
       display: flex;
-      gap: 12px;
+      gap: 8px;
       align-items: stretch;
     }
     
     .input-box input[type="text"] {
       flex: 1;
-      padding: 15px 18px;
+      padding: 10px 12px;
       border: 2px solid rgba(102, 126, 234, 0.2);
-      border-radius: 15px;
-      font-size: 16px;
+      border-radius: 10px;
+      font-size: 14px;
       font-weight: 500;
       background: rgba(255, 255, 255, 0.8);
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -162,23 +162,24 @@
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
-      gap: 15px;
+      gap: 10px;
     }
     
     .type-options {
       display: flex;
-      gap: 15px;
+      gap: 10px;
       align-items: center;
     }
     
     .type-options label {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
       font-weight: 500;
+      font-size: 13px;
       cursor: pointer;
-      padding: 8px 15px;
-      border-radius: 12px;
+      padding: 6px 10px;
+      border-radius: 8px;
       transition: all 0.3s ease;
       background: rgba(102, 126, 234, 0.1);
     }
@@ -199,16 +200,16 @@
     }
     
     .btn {
-      padding: 12px 20px;
-      border-radius: 15px;
-      font-size: 16px;
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-size: 13px;
       font-weight: 600;
       cursor: pointer;
       border: none;
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
       text-decoration: none;
       position: relative;
       overflow: hidden;
@@ -248,15 +249,15 @@
     
     .dark-toggle {
       position: fixed;
-      top: 25px;
-      right: 25px;
+      top: 15px;
+      right: 15px;
       background: rgba(255, 255, 255, 0.2);
       backdrop-filter: blur(10px);
       border: 1px solid rgba(255, 255, 255, 0.3);
-      width: 50px;
-      height: 50px;
+      width: 40px;
+      height: 40px;
       border-radius: 50%;
-      font-size: 22px;
+      font-size: 18px;
       cursor: pointer;
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       display: flex;
@@ -273,12 +274,13 @@
     .task-columns {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 25px;
+      gap: 15px;
     }
     
     @media (max-width: 768px) {
       .task-columns {
         grid-template-columns: 1fr;
+        gap: 10px;
       }
       
       .input-row {
@@ -299,9 +301,9 @@
       background: rgba(255, 255, 255, 0.95);
       backdrop-filter: blur(20px);
       border: 1px solid rgba(255, 255, 255, 0.3);
-      border-radius: 20px;
-      padding: 25px;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      border-radius: 15px;
+      padding: 15px;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       position: relative;
       overflow: hidden;
@@ -313,8 +315,8 @@
       top: 0;
       left: 0;
       right: 0;
-      height: 4px;
-      border-radius: 20px 20px 0 0;
+      height: 3px;
+      border-radius: 15px 15px 0 0;
     }
     
     #list-section::before {
@@ -336,23 +338,23 @@
     }
     
     .section h3 {
-      margin: 0 0 20px 0;
-      font-size: 1.5rem;
+      margin: 0 0 12px 0;
+      font-size: 1.1rem;
       font-weight: 700;
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 6px;
     }
     
     .task {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 15px;
+      padding: 8px;
       background: rgba(255, 255, 255, 0.7);
-      margin-bottom: 12px;
-      border-radius: 15px;
-      font-size: 14px;
+      margin-bottom: 6px;
+      border-radius: 10px;
+      font-size: 13px;
       cursor: grab;
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       border: 1px solid rgba(0, 0, 0, 0.05);
@@ -398,20 +400,20 @@
     .task-content { 
       display: flex; 
       align-items: center; 
-      gap: 12px; 
+      gap: 8px; 
       flex: 1; 
     }
     
     .task-content input[type="checkbox"] {
       accent-color: #667eea;
-      transform: scale(1.3);
+      transform: scale(1.1);
       cursor: pointer;
     }
     
     .task span { 
-      font-size: 14px; 
+      font-size: 13px; 
       font-weight: 500;
-      line-height: 1.4;
+      line-height: 1.3;
     }
     
     .completed {
@@ -438,13 +440,13 @@
     .actions button {
       background: rgba(102, 126, 234, 0.1);
       border: none;
-      font-size: 16px;
+      font-size: 14px;
       cursor: pointer;
-      padding: 8px;
-      border-radius: 10px;
+      padding: 6px;
+      border-radius: 8px;
       transition: all 0.3s ease;
-      width: 35px;
-      height: 35px;
+      width: 28px;
+      height: 28px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -468,14 +470,14 @@
     
     .summary {
       text-align: center;
-      font-size: 16px;
+      font-size: 14px;
       font-weight: 600;
-      margin-top: 30px;
-      padding: 20px;
+      margin-top: 15px;
+      padding: 12px;
       background: rgba(255, 255, 255, 0.1);
       backdrop-filter: blur(10px);
       border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 20px;
+      border-radius: 15px;
       color: white;
     }
     
@@ -483,11 +485,12 @@
       background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
       color: white;
       border: none;
-      padding: 10px 20px;
-      border-radius: 12px;
+      padding: 6px 12px;
+      border-radius: 8px;
       font-weight: 600;
+      font-size: 12px;
       cursor: pointer;
-      margin-left: 15px;
+      margin-left: 10px;
       transition: all 0.3s ease;
     }
     
@@ -498,12 +501,12 @@
     
     .priority-choose {
       display: flex;
-      gap: 8px;
+      gap: 6px;
     }
     
     .priority-dot {
-      width: 20px;
-      height: 20px;
+      width: 16px;
+      height: 16px;
       border-radius: 50%;
       cursor: pointer;
       transition: all 0.3s ease;
