@@ -5,155 +5,604 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Task Manager</title>
   <style>
-    * { box-sizing: border-box; }
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      margin: 0;
-      background: #f0f4f8;
-      padding: 10px;
-      transition: background 0.3s, color 0.3s;
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    
+    * { 
+      box-sizing: border-box; 
     }
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      margin: 0;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow-x: hidden;
+    }
+    
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.02)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.02)"/><circle cx="50" cy="10" r="0.5" fill="rgba(255,255,255,0.01)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+      pointer-events: none;
+      z-index: 1;
+    }
+    
     body.dark {
-      background: #1e1e1e;
+      background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+    }
+    
+    body.dark::before {
+      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="darkgrain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.005)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.005)"/></pattern></defs><rect width="100" height="100" fill="url(%23darkgrain)"/></svg>');
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 2;
+    }
+    
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+      position: relative;
+    }
+    
+    .date-display {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 8px 16px;
+      border-radius: 20px;
+      display: inline-block;
+      font-size: 14px;
+      font-weight: 500;
+      color: white;
+      margin-bottom: 15px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+    
+    body.dark .date-display {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin: 0;
+      background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+      letter-spacing: -0.02em;
+    }
+    
+    body.dark h1 {
+      background: linear-gradient(135deg, #ffffff 0%, #e0e0e0 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .input-container {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 20px;
+      padding: 25px;
+      margin-bottom: 30px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .input-container:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+    }
+    
+    body.dark .input-container {
+      background: rgba(30, 30, 30, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.1);
       color: #f0f0f0;
     }
-    h1, .date-display {
-      text-align: center;
-      margin: 0.5rem 0;
-    }
+    
     .input-box {
       display: flex;
       flex-direction: column;
-      align-items: center;
-      gap: 6px;
-      margin-bottom: 10px;
+      gap: 15px;
     }
-    .input-box input[type="text"] {
-      width: 100%;
-      padding: 8px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 14px;
-    }
-    .type-options {
+    
+    .input-row {
       display: flex;
-      gap: 10px;
+      gap: 12px;
+      align-items: stretch;
+    }
+    
+    .input-box input[type="text"] {
+      flex: 1;
+      padding: 15px 18px;
+      border: 2px solid rgba(102, 126, 234, 0.2);
+      border-radius: 15px;
+      font-size: 16px;
+      font-weight: 500;
+      background: rgba(255, 255, 255, 0.8);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      outline: none;
+    }
+    
+    .input-box input[type="text"]:focus {
+      border-color: #667eea;
+      background: rgba(255, 255, 255, 1);
+      transform: scale(1.01);
+      box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+    }
+    
+    body.dark .input-box input[type="text"] {
+      background: rgba(40, 40, 40, 0.8);
+      border-color: rgba(255, 255, 255, 0.2);
+      color: #f0f0f0;
+    }
+    
+    body.dark .input-box input[type="text"]:focus {
+      background: rgba(50, 50, 50, 1);
+      border-color: #667eea;
+    }
+    
+    .controls {
+      display: flex;
+      justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
+      gap: 15px;
     }
+    
+    .type-options {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+    }
+    
     .type-options label {
-      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 500;
+      cursor: pointer;
+      padding: 8px 15px;
+      border-radius: 12px;
+      transition: all 0.3s ease;
+      background: rgba(102, 126, 234, 0.1);
     }
-    .add-btn, .voice-btn, .dark-toggle {
-      padding: 5px 10px;
-      border-radius: 6px;
-      font-size: 14px;
+    
+    .type-options label:hover {
+      background: rgba(102, 126, 234, 0.2);
+      transform: scale(1.05);
+    }
+    
+    .type-options input[type="radio"] {
+      accent-color: #667eea;
+      transform: scale(1.2);
+    }
+    
+    .button-group {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .btn {
+      padding: 12px 20px;
+      border-radius: 15px;
+      font-size: 16px;
+      font-weight: 600;
       cursor: pointer;
       border: none;
-    }
-    .add-btn { background: #6a11cb; color: #fff; }
-    .voice-btn { background: #00b894; color: #fff; }
-    .dark-toggle { background: none; font-size: 18px; border: none; position: absolute; top: 10px; right: 10px; cursor: pointer; }
-
-    .task-columns {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       display: flex;
-      flex-direction: column;
-      gap: 12px;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      position: relative;
+      overflow: hidden;
     }
+    
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: left 0.5s;
+    }
+    
+    .btn:hover::before {
+      left: 100%;
+    }
+    
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    }
+    
+    .add-btn { 
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+    }
+    
+    .voice-btn { 
+      background: linear-gradient(135deg, #00b894 0%, #00a085 100%);
+      color: white;
+      box-shadow: 0 8px 20px rgba(0, 184, 148, 0.3);
+    }
+    
+    .dark-toggle {
+      position: fixed;
+      top: 25px;
+      right: 25px;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      font-size: 22px;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    
+    .dark-toggle:hover {
+      transform: scale(1.1) rotate(180deg);
+      background: rgba(255, 255, 255, 0.3);
+    }
+    
+    .task-columns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 25px;
+    }
+    
+    @media (max-width: 768px) {
+      .task-columns {
+        grid-template-columns: 1fr;
+      }
+      
+      .input-row {
+        flex-direction: column;
+      }
+      
+      .controls {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      
+      .type-options {
+        justify-content: center;
+      }
+    }
+    
     .section {
-      background: white;
-      border-radius: 10px;
-      padding: 12px;
-      font-size: 13px;
-      box-shadow: 0 3px 6px rgba(0,0,0,0.1);
-      transition: background 0.3s;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 20px;
+      padding: 25px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
     }
+    
+    .section::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      border-radius: 20px 20px 0 0;
+    }
+    
+    #list-section::before {
+      background: linear-gradient(90deg, #4CAF50, #45a049);
+    }
+    
+    #reminder-section::before {
+      background: linear-gradient(90deg, #FF9800, #f57c00);
+    }
+    
+    .section:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+    }
+    
     body.dark .section {
-      background: #2c2c2c;
+      background: rgba(30, 30, 30, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.1);
     }
-    #list-section { border-left: 5px solid #4CAF50; }
-    #reminder-section { border-left: 5px solid #FF9800; }
-
+    
+    .section h3 {
+      margin: 0 0 20px 0;
+      font-size: 1.5rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
     .task {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 6px;
-      background: #fdfdfd;
-      margin-bottom: 6px;
-      border-radius: 6px;
-      font-size: 13px;
+      padding: 15px;
+      background: rgba(255, 255, 255, 0.7);
+      margin-bottom: 12px;
+      border-radius: 15px;
+      font-size: 14px;
       cursor: grab;
-      transition: all 0.2s ease-in-out;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      border: 1px solid rgba(0, 0, 0, 0.05);
+      position: relative;
+      overflow: hidden;
     }
+    
+    .task::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.1), transparent);
+      transition: left 0.5s;
+    }
+    
+    .task:hover::before {
+      left: 100%;
+    }
+    
     .task:hover {
-      background-color: #eef3f8;
+      transform: translateY(-2px);
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
     }
-    body.dark .task { background: #3a3a3a; }
-    .task-content { display: flex; align-items: center; gap: 8px; flex: 1; }
-    .task span { font-size: 13px; }
-    .completed span { text-decoration: line-through; color: gray; }
-
-    .actions button {
-      background: none;
-      border: none;
-      font-size: 12px;
+    
+    .task:active {
+      cursor: grabbing;
+      transform: scale(1.02);
+    }
+    
+    body.dark .task { 
+      background: rgba(40, 40, 40, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    body.dark .task:hover {
+      background: rgba(50, 50, 50, 0.9);
+    }
+    
+    .task-content { 
+      display: flex; 
+      align-items: center; 
+      gap: 12px; 
+      flex: 1; 
+    }
+    
+    .task-content input[type="checkbox"] {
+      accent-color: #667eea;
+      transform: scale(1.3);
       cursor: pointer;
-      color: #888;
-      margin-left: 4px;
     }
+    
+    .task span { 
+      font-size: 14px; 
+      font-weight: 500;
+      line-height: 1.4;
+    }
+    
+    .completed {
+      opacity: 0.6;
+      transform: scale(0.98);
+    }
+    
+    .completed span { 
+      text-decoration: line-through; 
+      color: #888; 
+    }
+    
+    .actions {
+      display: flex;
+      gap: 8px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    
+    .task:hover .actions {
+      opacity: 1;
+    }
+    
+    .actions button {
+      background: rgba(102, 126, 234, 0.1);
+      border: none;
+      font-size: 16px;
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 10px;
+      transition: all 0.3s ease;
+      width: 35px;
+      height: 35px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .actions button:hover {
+      background: rgba(102, 126, 234, 0.2);
+      transform: scale(1.1);
+    }
+    
     .edit-input {
-      border: 1px solid #ccc;
-      padding: 3px;
-      font-size: 13px;
-      border-radius: 3px;
+      border: 2px solid #667eea;
+      padding: 8px 12px;
+      font-size: 14px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.9);
+      outline: none;
+      font-family: inherit;
+      font-weight: 500;
     }
+    
     .summary {
       text-align: center;
-      font-size: 13px;
-      margin-top: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      margin-top: 30px;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 20px;
+      color: white;
     }
+    
+    .summary button {
+      background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-left: 15px;
+      transition: all 0.3s ease;
+    }
+    
+    .summary button:hover {
+      transform: scale(1.05);
+      box-shadow: 0 8px 20px rgba(255, 107, 107, 0.3);
+    }
+    
     .priority-choose {
       display: flex;
-      gap: 5px;
+      gap: 8px;
     }
+    
     .priority-dot {
-      width: 16px;
-      height: 16px;
+      width: 20px;
+      height: 20px;
       border-radius: 50%;
       cursor: pointer;
+      transition: all 0.3s ease;
+      border: 2px solid rgba(255, 255, 255, 0.3);
     }
-    .priority-high { background: red; }
-    .priority-medium { background: orange; }
-    .priority-low { background: green; }
+    
+    .priority-dot:hover {
+      transform: scale(1.2);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+    
+    .priority-high { 
+      background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+    }
+    
+    .priority-medium { 
+      background: linear-gradient(135deg, #feca57 0%, #ff9ff3 100%);
+    }
+    
+    .priority-low { 
+      background: linear-gradient(135deg, #48cab2 0%, #2dd4bf 100%);
+    }
+    
+    .fade-in {
+      animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .pulse {
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.4);
+      }
+      70% {
+        box-shadow: 0 0 0 10px rgba(102, 126, 234, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(102, 126, 234, 0);
+      }
+    }
   </style>
 </head>
 <body>
   <button class="dark-toggle" onclick="toggleDarkMode()">🌓</button>
-  <div class="date-display" id="dateDisplay"></div>
-  <h1>🗂️ Life Task Manager</h1>
-  <div class="input-box">
-    <input type="text" id="task-input" placeholder="Add a new task...">
-    <div class="type-options">
-      <label><input type="radio" name="task-type" value="list" checked> List</label>
-      <label><input type="radio" name="task-type" value="reminder"> Reminder</label>
-      <button class="add-btn" id="add-task">+</button>
-      <button class="voice-btn" onclick="startVoiceInput()">🎤</button>
+  
+  <div class="container">
+    <div class="header">
+      <div class="date-display" id="dateDisplay"></div>
+      <h1>🗂️ Life Task Manager</h1>
     </div>
-  </div>
+    
+    <div class="input-container">
+      <div class="input-box">
+        <div class="input-row">
+          <input type="text" id="task-input" placeholder="Add a new task...">
+        </div>
+        <div class="controls">
+          <div class="type-options">
+            <label><input type="radio" name="task-type" value="list" checked> 📝 List</label>
+            <label><input type="radio" name="task-type" value="reminder"> ⏰ Reminder</label>
+          </div>
+          <div class="button-group">
+            <button class="btn add-btn" id="add-task">
+              <span>➕</span> Add Task
+            </button>
+            <button class="btn voice-btn" onclick="startVoiceInput()">
+              <span>🎤</span> Voice
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
 
-  <div class="task-columns">
-    <div class="section" id="list-section">
-      <h3>🛒 Lists</h3>
-      <div id="list-tasks"></div>
+    <div class="task-columns">
+      <div class="section" id="list-section">
+        <h3>🛒 Lists</h3>
+        <div id="list-tasks"></div>
+      </div>
+      <div class="section" id="reminder-section">
+        <h3>🔔 Reminders</h3>
+        <div id="reminder-tasks"></div>
+      </div>
     </div>
-    <div class="section" id="reminder-section">
-      <h3>🔔 Reminders</h3>
-      <div id="reminder-tasks"></div>
-    </div>
-  </div>
 
-  <div class="summary" id="summary"></div>
+    <div class="summary" id="summary"></div>
+  </div>
 
   <script>
     const input = document.getElementById("task-input");
@@ -169,13 +618,15 @@
     }
 
     function startVoiceInput() {
-      if (!('webkitSpeechRecognition' in window)) return alert("Not supported");
+      if (!('webkitSpeechRecognition' in window)) return alert("Speech recognition not supported in this browser");
       const recognition = new webkitSpeechRecognition();
       recognition.lang = 'en-US';
       recognition.start();
       recognition.onresult = (e) => {
         input.value = e.results[0][0].transcript;
         input.focus();
+        input.classList.add('pulse');
+        setTimeout(() => input.classList.remove('pulse'), 2000);
       };
     }
 
@@ -208,7 +659,7 @@
       renderSection("reminder-tasks", reminders, "reminder");
       const completed = tasks.filter(t => t.done).length;
       const pending = tasks.length - completed;
-      summary.innerHTML = `${completed} completed • ${pending} remaining ${lastDeletedTask ? "<button onclick='undoDelete()'>Undo Delete</button>" : ""}`;
+      summary.innerHTML = `✅ ${completed} completed • ⏳ ${pending} remaining ${lastDeletedTask ? "<button onclick='undoDelete()'>↩️ Undo Delete</button>" : ""}`;
     }
 
     function renderSection(containerId, tasks, type) {
@@ -216,7 +667,7 @@
       container.innerHTML = "";
       tasks.forEach((task, index) => {
         const div = document.createElement("div");
-        div.className = "task" + (task.done ? " completed" : "");
+        div.className = "task fade-in" + (task.done ? " completed" : "");
         div.draggable = true;
 
         const span = document.createElement("span");
@@ -234,7 +685,7 @@
         };
 
         const deleteBtn = document.createElement("button");
-        deleteBtn.innerHTML = "❌";
+        deleteBtn.innerHTML = "🗑️";
         deleteBtn.onclick = () => {
           lastDeletedTask = task;
           const all = getTasks().filter(t => !(t.text === task.text && t.type === task.type));
@@ -257,6 +708,9 @@
             saveTasks(all);
             renderTasks();
           };
+          inputBox.onkeypress = (e) => {
+            if (e.key === "Enter") inputBox.blur();
+          };
         };
 
         const content = document.createElement("div");
@@ -277,6 +731,7 @@
             ["high", "medium", "low"].forEach(p => {
               const dot = document.createElement("div");
               dot.className = `priority-dot priority-${p}`;
+              dot.title = `${p.charAt(0).toUpperCase() + p.slice(1)} Priority`;
               dot.onclick = () => {
                 const all = getTasks();
                 const match = all.find(t => t.text === task.text && t.type === task.type);
@@ -290,6 +745,7 @@
           } else {
             const dot = document.createElement("div");
             dot.className = `priority-dot priority-${task.priority}`;
+            dot.title = `${task.priority.charAt(0).toUpperCase() + task.priority.slice(1)} Priority`;
             content.appendChild(dot);
           }
         }
@@ -297,10 +753,25 @@
 
         div.addEventListener("dragstart", (e) => {
           e.dataTransfer.setData("text/plain", JSON.stringify({ text: task.text, type: task.type }));
+          div.style.opacity = "0.5";
         });
-        div.addEventListener("dragover", (e) => e.preventDefault());
+        
+        div.addEventListener("dragend", (e) => {
+          div.style.opacity = "1";
+        });
+        
+        div.addEventListener("dragover", (e) => {
+          e.preventDefault();
+          div.style.background = "rgba(102, 126, 234, 0.1)";
+        });
+        
+        div.addEventListener("dragleave", (e) => {
+          div.style.background = "";
+        });
+        
         div.addEventListener("drop", (e) => {
           e.preventDefault();
+          div.style.background = "";
           const draggedData = JSON.parse(e.dataTransfer.getData("text"));
           const all = getTasks();
           const draggedIndex = all.findIndex(t => t.text === draggedData.text && t.type === draggedData.type);
