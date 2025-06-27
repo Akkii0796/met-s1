@@ -2,117 +2,165 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>📝 Life Tasks</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simple Task List</title>
   <style>
-    li.dragging {
-      opacity: 0.4;
+    * {
+      box-sizing: border-box;
+      font-family: sans-serif;
     }
-    .completed span {
-      text-decoration: line-through;
-      color: #6b7280;
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: #fefefe;
+    }
+
+    .container {
+      max-width: 500px;
+      margin: auto;
+      padding: 1rem;
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 1rem;
+      font-size: 1rem;
+      margin-bottom: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    li {
+      background: #fff;
+      margin-bottom: 0.5rem;
+      padding: 0.75rem 1rem;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      touch-action: manipulation;
+    }
+
+    li.dragging {
+      opacity: 0.5;
+    }
+
+    .delete-btn {
+      background: red;
+      color: #fff;
+      border: none;
+      padding: 0.3rem 0.6rem;
+      border-radius: 4px;
+      cursor: pointer;
     }
   </style>
 </head>
-<body class="bg-gradient-to-b from-blue-100 to-white min-h-screen p-4">
-  <div class="max-w-md mx-auto bg-white shadow-xl rounded-2xl p-6">
-    <h1 class="text-3xl font-bold text-center text-blue-700 mb-6">📝 Life Tasks</h1>
-
-    <div class="flex mb-4">
-      <input id="taskInput" type="text" placeholder="Enter a task..." class="flex-1 p-3 border border-blue-300 rounded-l-lg focus:outline-none" />
-      <button id="addBtn" class="bg-blue-600 text-white px-4 rounded-r-lg hover:bg-blue-700 transition-all">Add</button>
-    </div>
-
-    <ul id="taskList" class="space-y-3"></ul>
+<body>
+  <div class="container">
+    <h1>📝 Tasks</h1>
+    <input id="taskInput" type="text" placeholder="Add new task..." />
+    <ul id="taskList"></ul>
   </div>
 
   <script>
     const taskInput = document.getElementById('taskInput');
-    const addBtn = document.getElementById('addBtn');
     const taskList = document.getElementById('taskList');
 
     let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
 
-    function saveTasks() {
-      localStorage.setItem('tasks', JSON.stringify(tasks));
-    }
+    renderTasks();
+
+    taskInput.addEventListener('keypress', function (e) {
+      if (e.key === 'Enter' && taskInput.value.trim()) {
+        tasks.push(taskInput.value.trim());
+        taskInput.value = '';
+        saveAndRender();
+      }
+    });
 
     function renderTasks() {
       taskList.innerHTML = '';
       tasks.forEach((task, index) => {
         const li = document.createElement('li');
-        li.className = `flex items-center justify-between bg-blue-50 p-3 rounded-lg shadow-sm group ${task.completed ? 'completed' : ''}`;
-        li.setAttribute('draggable', true);
+        li.setAttribute('draggable', 'true');
         li.dataset.index = index;
-
         li.innerHTML = `
-          <span class="flex items-center gap-2">
-            <span class="cursor-grab text-lg">📍</span>
-            <span class="transition-all">${task.text}</span>
-          </span>
-          <div class="flex gap-2">
-            <button class="toggle-complete bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600">✔</button>
-            <button class="delete-btn bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600">🗑</button>
-          </div>
+          <span>${task}</span>
+          <button class="delete-btn">x</button>
         `;
         taskList.appendChild(li);
       });
     }
 
-    addBtn.addEventListener('click', () => {
-      const newTaskText = taskInput.value.trim();
-      if (newTaskText) {
-        tasks.push({ text: newTaskText, completed: false });
-        saveTasks();
-        renderTasks();
-        taskInput.value = '';
-      }
-    });
+    function saveTasks() {
+      localStorage.setItem('tasks', JSON.stringify(tasks));
+    }
 
-    taskInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') addBtn.click();
-    });
-
-    taskList.addEventListener('click', (e) => {
-      const index = e.target.closest('li')?.dataset.index;
-      if (e.target.classList.contains('delete-btn')) {
-        tasks.splice(index, 1);
-      } else if (e.target.classList.contains('toggle-complete')) {
-        tasks[index].completed = !tasks[index].completed;
-      }
+    function saveAndRender() {
       saveTasks();
       renderTasks();
-    });
+    }
 
-    // Drag-and-drop logic
-    let draggedIndex;
-
-    taskList.addEventListener('dragstart', (e) => {
-      if (e.target.tagName === 'LI') {
-        draggedIndex = e.target.dataset.index;
-        e.target.classList.add('dragging');
+    taskList.addEventListener('click', function (e) {
+      if (e.target.classList.contains('delete-btn')) {
+        const index = e.target.closest('li').dataset.index;
+        tasks.splice(index, 1);
+        saveAndRender();
       }
     });
 
-    taskList.addEventListener('dragend', (e) => {
+    let draggedIndex;
+
+    taskList.addEventListener('dragstart', function (e) {
+      draggedIndex = e.target.dataset.index;
+      e.target.classList.add('dragging');
+    });
+
+    taskList.addEventListener('dragend', function (e) {
       e.target.classList.remove('dragging');
     });
 
-    taskList.addEventListener('dragover', (e) => {
+    taskList.addEventListener('dragover', function (e) {
       e.preventDefault();
-      const target = e.target.closest('li');
-      if (!target || target.classList.contains('dragging')) return;
-      const droppedIndex = target.dataset.index;
-      if (draggedIndex !== droppedIndex) {
-        const [movedTask] = tasks.splice(draggedIndex, 1);
-        tasks.splice(droppedIndex, 0, movedTask);
-        saveTasks();
-        renderTasks();
+      const afterElement = getDragAfterElement(taskList, e.clientY);
+      const dragging = document.querySelector('.dragging');
+      if (afterElement == null) {
+        taskList.appendChild(dragging);
+      } else {
+        taskList.insertBefore(dragging, afterElement);
       }
     });
 
-    renderTasks();
+    taskList.addEventListener('drop', function (e) {
+      const newIndex = [...taskList.children].indexOf(document.querySelector('.dragging'));
+      const movedItem = tasks.splice(draggedIndex, 1)[0];
+      tasks.splice(newIndex, 0, movedItem);
+      saveAndRender();
+    });
+
+    function getDragAfterElement(container, y) {
+      const draggableElements = [...container.querySelectorAll('li:not(.dragging)')];
+      return draggableElements.reduce((closest, child) => {
+        const box = child.getBoundingClientRect();
+        const offset = y - box.top - box.height / 2;
+        if (offset < 0 && offset > closest.offset) {
+          return { offset: offset, element: child };
+        } else {
+          return closest;
+        }
+      }, { offset: Number.NEGATIVE_INFINITY }).element;
+    }
   </script>
 </body>
 </html>
