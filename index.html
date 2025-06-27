@@ -10,121 +10,124 @@
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       margin: 0;
       background: #eaf0f6;
-      padding: 20px;
+      padding: 10px;
+      transition: background 0.3s, color 0.3s;
     }
-    h1 {
+    body.dark {
+      background: #1e1e1e;
+      color: #f0f0f0;
+    }
+    h1, .date-display {
       text-align: center;
-      margin-bottom: 20px;
+      margin: 0.5rem 0;
     }
     .input-box {
       display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      justify-content: center;
-      margin-bottom: 20px;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 10px;
     }
     .input-box input[type="text"] {
-      flex: 1 1 50%;
-      padding: 10px;
-      border: 2px solid #ccc;
-      border-radius: 8px;
+      width: 100%;
+      padding: 6px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
     }
-    .input-box .type-options {
-      flex: 1 1 100%;
+    .type-options {
       display: flex;
-      gap: 20px;
-      justify-content: center;
-      margin-top: 10px;
-    }
-    .input-box .type-options label {
-      display: flex;
+      gap: 10px;
       align-items: center;
-      gap: 5px;
-      font-weight: bold;
+      flex-wrap: wrap;
     }
-    .add-btn {
-      background: linear-gradient(to right, #6a11cb, #2575fc);
-      color: white;
-      border: none;
-      padding: 10px 16px;
-      border-radius: 8px;
+    .type-options label {
+      font-size: 13px;
+    }
+    .add-btn, .voice-btn, .dark-toggle {
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 14px;
       cursor: pointer;
-      font-weight: bold;
+      border: none;
     }
+    .add-btn { background: #6a11cb; color: #fff; }
+    .voice-btn { background: #00b894; color: #fff; }
+    .dark-toggle { background: #333; color: #fff; margin-left: auto; }
+
     .task-columns {
       display: flex;
       flex-direction: column;
-      gap: 20px;
+      gap: 10px;
     }
     .section {
       background: white;
-      border-radius: 12px;
-      padding: 16px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      border-radius: 8px;
+      padding: 10px;
+      font-size: 13px;
     }
-    #list-section { border-left: 6px solid #4CAF50; }
-    #reminder-section { border-left: 6px solid #FF9800; }
-    .section h3 {
-      margin: 0 0 10px;
+    body.dark .section {
+      background: #2c2c2c;
     }
+    #list-section { border-left: 4px solid #4CAF50; }
+    #reminder-section { border-left: 4px solid #FF9800; }
+
     .task {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 10px;
+      padding: 6px;
       background: #f9f9f9;
-      margin-bottom: 8px;
-      border-radius: 6px;
+      margin-bottom: 4px;
+      border-radius: 5px;
+      font-size: 13px;
       cursor: grab;
     }
-    .task:last-child {
-      margin-bottom: 0;
+    body.dark .task {
+      background: #444;
     }
-    .task-content {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex: 1;
-    }
-    .task-content input[type="checkbox"] {
-      width: 18px;
-      height: 18px;
-    }
-    .task span {
-      font-size: 16px;
-    }
-    .completed span {
-      text-decoration: line-through;
-      color: gray;
-    }
+    .task-content { display: flex; align-items: center; gap: 8px; flex: 1; }
+    .task span { font-size: 13px; }
+    .completed span { text-decoration: line-through; color: gray; }
+
     .actions button {
       background: none;
       border: none;
-      font-size: 18px;
+      font-size: 13px;
       cursor: pointer;
       color: #555;
+      margin-left: 4px;
     }
     .edit-input {
       border: 1px solid #ccc;
-      padding: 4px;
-      border-radius: 4px;
+      padding: 3px;
+      font-size: 13px;
+      border-radius: 3px;
     }
     .summary {
       text-align: center;
-      margin-top: 20px;
-      font-weight: bold;
-      color: #333;
+      font-size: 13px;
+      margin-top: 10px;
     }
+    .priority-high { color: red; font-weight: bold; }
+    .priority-medium { color: orange; font-weight: bold; }
+    .priority-low { color: green; font-weight: bold; }
   </style>
 </head>
 <body>
+  <button class="dark-toggle" onclick="toggleDarkMode()">🌓 Toggle Theme</button>
+  <div class="date-display" id="dateDisplay"></div>
   <h1>🗂️ Life Task Manager</h1>
   <div class="input-box">
     <input type="text" id="task-input" placeholder="Add a new task...">
     <div class="type-options">
       <label><input type="radio" name="task-type" value="list" checked> List</label>
       <label><input type="radio" name="task-type" value="reminder"> Reminder</label>
+      <label><input type="radio" name="priority" value="high"> 🔴</label>
+      <label><input type="radio" name="priority" value="medium" checked> 🟡</label>
+      <label><input type="radio" name="priority" value="low"> 🟢</label>
       <button class="add-btn" id="add-task">+</button>
+      <button class="voice-btn" onclick="startVoiceInput()">🎤</button>
     </div>
   </div>
 
@@ -144,18 +147,34 @@
   <script>
     const input = document.getElementById("task-input");
     const addBtn = document.getElementById("add-task");
+    const summary = document.getElementById("summary");
+    let lastDeletedTask = null;
 
-    input.addEventListener("keypress", (e) => {
-      if (e.key === "Enter") addTask();
-    });
+    input.addEventListener("keypress", (e) => { if (e.key === "Enter") addTask(); });
     addBtn.onclick = () => addTask();
+
+    function toggleDarkMode() {
+      document.body.classList.toggle("dark");
+    }
+
+    function startVoiceInput() {
+      if (!('webkitSpeechRecognition' in window)) return alert("Not supported");
+      const recognition = new webkitSpeechRecognition();
+      recognition.lang = 'en-US';
+      recognition.start();
+      recognition.onresult = (e) => {
+        input.value = e.results[0][0].transcript;
+        input.focus();
+      };
+    }
 
     function addTask() {
       const text = input.value.trim();
       const type = document.querySelector('input[name="task-type"]:checked').value;
+      const priority = document.querySelector('input[name="priority"]:checked').value;
       if (!text) return;
       const tasks = getTasks();
-      tasks.push({ text, done: false, type });
+      tasks.push({ text, done: false, type, priority });
       saveTasks(tasks);
       input.value = "";
       renderTasks();
@@ -177,7 +196,7 @@
       renderSection("reminder-tasks", reminders, "reminder");
       const completed = tasks.filter(t => t.done).length;
       const pending = tasks.length - completed;
-      document.getElementById("summary").textContent = `${completed} completed • ${pending} remaining`;
+      summary.innerHTML = `${completed} completed • ${pending} remaining ${lastDeletedTask ? "<button onclick='undoDelete()'>Undo Delete</button>" : ""}`;
     }
 
     function renderSection(containerId, tasks, type) {
@@ -189,7 +208,10 @@
         div.draggable = true;
 
         const span = document.createElement("span");
-        span.textContent = task.text;
+        span.textContent = `${task.text} `;
+        const priority = document.createElement("span");
+        priority.className = `priority-${task.priority}`;
+        priority.textContent = task.priority === 'high' ? '🔴' : task.priority === 'medium' ? '🟡' : '🟢';
 
         const checkbox = document.createElement("input");
         checkbox.type = "checkbox";
@@ -205,6 +227,7 @@
         const deleteBtn = document.createElement("button");
         deleteBtn.innerHTML = "❌";
         deleteBtn.onclick = () => {
+          lastDeletedTask = task;
           const all = getTasks().filter(t => !(t.text === task.text && t.type === task.type));
           saveTasks(all);
           renderTasks();
@@ -213,15 +236,15 @@
         const editBtn = document.createElement("button");
         editBtn.innerHTML = "✏️";
         editBtn.onclick = () => {
-          const input = document.createElement("input");
-          input.value = task.text;
-          input.className = "edit-input";
-          span.replaceWith(input);
-          input.focus();
-          input.onblur = () => {
+          const inputBox = document.createElement("input");
+          inputBox.value = task.text;
+          inputBox.className = "edit-input";
+          span.replaceWith(inputBox);
+          inputBox.focus();
+          inputBox.onblur = () => {
             const all = getTasks();
             const match = all.find(t => t.text === task.text && t.type === task.type);
-            match.text = input.value;
+            match.text = inputBox.value;
             saveTasks(all);
             renderTasks();
           };
@@ -231,6 +254,7 @@
         content.className = "task-content";
         content.appendChild(checkbox);
         content.appendChild(span);
+        content.appendChild(priority);
 
         const actions = document.createElement("div");
         actions.className = "actions";
@@ -243,9 +267,7 @@
         div.addEventListener("dragstart", (e) => {
           e.dataTransfer.setData("text/plain", JSON.stringify({ text: task.text, type: task.type }));
         });
-
         div.addEventListener("dragover", (e) => e.preventDefault());
-
         div.addEventListener("drop", (e) => {
           e.preventDefault();
           const draggedData = JSON.parse(e.dataTransfer.getData("text"));
@@ -262,6 +284,23 @@
       });
     }
 
+    function undoDelete() {
+      if (lastDeletedTask) {
+        const all = getTasks();
+        all.push(lastDeletedTask);
+        saveTasks(all);
+        lastDeletedTask = null;
+        renderTasks();
+      }
+    }
+
+    function updateDate() {
+      const date = new Date();
+      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+      document.getElementById("dateDisplay").textContent = date.toLocaleDateString(undefined, options);
+    }
+
+    updateDate();
     renderTasks();
   </script>
 </body>
