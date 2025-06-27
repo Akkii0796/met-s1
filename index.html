@@ -2,165 +2,269 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Simple Task List</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Task Manager</title>
   <style>
-    * {
-      box-sizing: border-box;
-      font-family: sans-serif;
-    }
-
     body {
+      font-family: sans-serif;
       margin: 0;
-      padding: 0;
-      background: #fefefe;
+      background: #f3f6fd;
+      padding: 20px;
     }
 
-    .container {
-      max-width: 500px;
-      margin: auto;
-      padding: 1rem;
-    }
-
-    h1 {
-      text-align: center;
-    }
-
-    input[type="text"] {
-      width: 100%;
-      padding: 1rem;
-      font-size: 1rem;
-      margin-bottom: 1rem;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-    }
-
-    ul {
-      list-style: none;
-      padding: 0;
-    }
-
-    li {
-      background: #fff;
-      margin-bottom: 0.5rem;
-      padding: 0.75rem 1rem;
-      border: 1px solid #ddd;
-      border-radius: 6px;
+    .tabs {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      touch-action: manipulation;
+      margin-bottom: 10px;
     }
 
-    li.dragging {
-      opacity: 0.5;
-    }
-
-    .delete-btn {
-      background: red;
-      color: #fff;
-      border: none;
-      padding: 0.3rem 0.6rem;
-      border-radius: 4px;
+    .tab {
+      flex: 1;
+      text-align: center;
+      padding: 10px;
       cursor: pointer;
+      border-radius: 10px;
+      font-weight: bold;
+    }
+
+    .active {
+      background: #27ae60;
+      color: white;
+    }
+
+    .input-box {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .input-box input {
+      flex: 1;
+      padding: 10px;
+      border: 2px solid #ccc;
+      border-radius: 8px;
+    }
+
+    .add-btn {
+      background: linear-gradient(to right, #6a11cb, #2575fc);
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .section {
+      background: white;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+
+    .section h3 {
+      margin: 0 0 10px;
+    }
+
+    .task {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    .task:last-child {
+      border-bottom: none;
+    }
+
+    .task-content {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+    }
+
+    .task-content input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+    }
+
+    .task span {
+      font-size: 16px;
+    }
+
+    .completed span {
+      text-decoration: line-through;
+      color: gray;
+    }
+
+    .actions button {
+      background: none;
+      border: none;
+      font-size: 18px;
+      cursor: pointer;
+      color: #555;
+      margin-left: 5px;
+    }
+
+    .summary {
+      text-align: center;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+
+    .drag-handle {
+      cursor: grab;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>📝 Tasks</h1>
-    <input id="taskInput" type="text" placeholder="Add new task..." />
-    <ul id="taskList"></ul>
+
+  <div class="tabs">
+    <div class="tab active" id="list-tab">🛒 List Item</div>
+    <div class="tab" id="reminder-tab">🔔 Reminder</div>
   </div>
 
+  <div class="input-box">
+    <input type="text" id="task-input" placeholder="Add a new task...">
+    <button class="add-btn" id="add-task">+</button>
+  </div>
+
+  <div class="section" id="list-section">
+    <h3>🛒 Lists <span id="list-count"></span></h3>
+    <div id="list-tasks"></div>
+  </div>
+
+  <div class="section" id="reminder-section" style="display:none;">
+    <h3>🔔 Reminders <span id="reminder-count"></span></h3>
+    <div id="reminder-tasks"></div>
+  </div>
+
+  <div class="summary" id="task-summary"></div>
+
   <script>
-    const taskInput = document.getElementById('taskInput');
-    const taskList = document.getElementById('taskList');
+    const tabs = {
+      list: document.getElementById("list-tab"),
+      reminder: document.getElementById("reminder-tab")
+    };
+    const sections = {
+      list: document.getElementById("list-section"),
+      reminder: document.getElementById("reminder-section")
+    };
 
-    let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+    let currentType = "list";
 
-    renderTasks();
+    tabs.list.onclick = () => switchTab("list");
+    tabs.reminder.onclick = () => switchTab("reminder");
 
-    taskInput.addEventListener('keypress', function (e) {
-      if (e.key === 'Enter' && taskInput.value.trim()) {
-        tasks.push(taskInput.value.trim());
-        taskInput.value = '';
-        saveAndRender();
-      }
-    });
-
-    function renderTasks() {
-      taskList.innerHTML = '';
-      tasks.forEach((task, index) => {
-        const li = document.createElement('li');
-        li.setAttribute('draggable', 'true');
-        li.dataset.index = index;
-        li.innerHTML = `
-          <span>${task}</span>
-          <button class="delete-btn">x</button>
-        `;
-        taskList.appendChild(li);
-      });
-    }
-
-    function saveTasks() {
-      localStorage.setItem('tasks', JSON.stringify(tasks));
-    }
-
-    function saveAndRender() {
-      saveTasks();
+    function switchTab(type) {
+      currentType = type;
+      for (let t in tabs) tabs[t].classList.remove("active");
+      for (let s in sections) sections[s].style.display = "none";
+      tabs[type].classList.add("active");
+      sections[type].style.display = "block";
       renderTasks();
     }
 
-    taskList.addEventListener('click', function (e) {
-      if (e.target.classList.contains('delete-btn')) {
-        const index = e.target.closest('li').dataset.index;
-        tasks.splice(index, 1);
-        saveAndRender();
-      }
-    });
+    const input = document.getElementById("task-input");
+    const addBtn = document.getElementById("add-task");
 
-    let draggedIndex;
+    addBtn.onclick = () => {
+      const text = input.value.trim();
+      if (!text) return;
+      const tasks = getTasks();
+      tasks.push({ text, done: false, type: currentType });
+      saveTasks(tasks);
+      input.value = "";
+      renderTasks();
+    };
 
-    taskList.addEventListener('dragstart', function (e) {
-      draggedIndex = e.target.dataset.index;
-      e.target.classList.add('dragging');
-    });
-
-    taskList.addEventListener('dragend', function (e) {
-      e.target.classList.remove('dragging');
-    });
-
-    taskList.addEventListener('dragover', function (e) {
-      e.preventDefault();
-      const afterElement = getDragAfterElement(taskList, e.clientY);
-      const dragging = document.querySelector('.dragging');
-      if (afterElement == null) {
-        taskList.appendChild(dragging);
-      } else {
-        taskList.insertBefore(dragging, afterElement);
-      }
-    });
-
-    taskList.addEventListener('drop', function (e) {
-      const newIndex = [...taskList.children].indexOf(document.querySelector('.dragging'));
-      const movedItem = tasks.splice(draggedIndex, 1)[0];
-      tasks.splice(newIndex, 0, movedItem);
-      saveAndRender();
-    });
-
-    function getDragAfterElement(container, y) {
-      const draggableElements = [...container.querySelectorAll('li:not(.dragging)')];
-      return draggableElements.reduce((closest, child) => {
-        const box = child.getBoundingClientRect();
-        const offset = y - box.top - box.height / 2;
-        if (offset < 0 && offset > closest.offset) {
-          return { offset: offset, element: child };
-        } else {
-          return closest;
-        }
-      }, { offset: Number.NEGATIVE_INFINITY }).element;
+    function getTasks() {
+      return JSON.parse(localStorage.getItem("tasks") || "[]");
     }
+
+    function saveTasks(tasks) {
+      localStorage.setItem("tasks", JSON.stringify(tasks));
+    }
+
+    function renderTasks() {
+      const tasks = getTasks();
+      const filtered = tasks.filter(t => t.type === "list");
+      const reminders = tasks.filter(t => t.type === "reminder");
+
+      renderSection("list-tasks", filtered);
+      renderSection("reminder-tasks", reminders);
+
+      document.getElementById("list-count").textContent = `${filtered.filter(t => !t.done).length} pending`;
+      document.getElementById("reminder-count").textContent = `${reminders.filter(t => !t.done).length} pending`;
+
+      const all = tasks.length;
+      const done = tasks.filter(t => t.done).length;
+      document.getElementById("task-summary").textContent = `${done} completed • ${all - done} remaining`;
+    }
+
+    function renderSection(containerId, tasks) {
+      const container = document.getElementById(containerId);
+      container.innerHTML = "";
+
+      tasks.forEach((task, index) => {
+        const div = document.createElement("div");
+        div.className = "task" + (task.done ? " completed" : "");
+        div.draggable = true;
+
+        div.innerHTML = `
+          <div class="task-content">
+            <span class="drag-handle">☰</span>
+            <input type="checkbox" ${task.done ? "checked" : ""}>
+            <span>${task.text}</span>
+          </div>
+          <div class="actions">
+            <button class="delete-btn">❌</button>
+          </div>
+        `;
+
+        const checkbox = div.querySelector("input[type=checkbox]");
+        checkbox.onchange = () => {
+          const allTasks = getTasks();
+          const match = allTasks.find(t => t.text === task.text && t.type === task.type);
+          match.done = checkbox.checked;
+          saveTasks(allTasks);
+          renderTasks();
+        };
+
+        div.querySelector(".delete-btn").onclick = () => {
+          const allTasks = getTasks().filter(t => !(t.text === task.text && t.type === task.type));
+          saveTasks(allTasks);
+          renderTasks();
+        };
+
+        // Drag support
+        div.addEventListener("dragstart", e => {
+          e.dataTransfer.setData("text/plain", task.text + "|" + task.type);
+        });
+
+        div.addEventListener("dragover", e => e.preventDefault());
+
+        div.addEventListener("drop", e => {
+          e.preventDefault();
+          const [dragText, dragType] = e.dataTransfer.getData("text").split("|");
+          const all = getTasks();
+          const dragged = all.find(t => t.text === dragText && t.type === dragType);
+          const target = all.find(t => t.text === task.text && t.type === task.type);
+
+          const from = all.indexOf(dragged);
+          const to = all.indexOf(target);
+          all.splice(from, 1);
+          all.splice(to, 0, dragged);
+          saveTasks(all);
+          renderTasks();
+        });
+
+        container.appendChild(div);
+      });
+    }
+
+    renderTasks();
   </script>
 </body>
 </html>
