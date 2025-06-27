@@ -3,21 +3,28 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Life Tasks</title>
+  <title>📝 Life Tasks</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <style>
-    body { background-color: #f3f4f6; }
-    li.dragging { opacity: 0.5; }
+    li.dragging {
+      opacity: 0.4;
+    }
+    .completed span {
+      text-decoration: line-through;
+      color: #6b7280;
+    }
   </style>
 </head>
-<body class="p-4">
-  <div class="max-w-md mx-auto bg-white shadow-lg rounded-lg p-4">
-    <h1 class="text-2xl font-bold mb-4 text-center">📝 Life Tasks</h1>
+<body class="bg-gradient-to-b from-blue-100 to-white min-h-screen p-4">
+  <div class="max-w-md mx-auto bg-white shadow-xl rounded-2xl p-6">
+    <h1 class="text-3xl font-bold text-center text-blue-700 mb-6">📝 Life Tasks</h1>
+
     <div class="flex mb-4">
-      <input type="text" id="taskInput" placeholder="Add new task" class="flex-1 border p-2 rounded-l focus:outline-none" />
-      <button id="addBtn" class="bg-blue-500 text-white px-4 rounded-r hover:bg-blue-600">Add</button>
+      <input id="taskInput" type="text" placeholder="Enter a task..." class="flex-1 p-3 border border-blue-300 rounded-l-lg focus:outline-none" />
+      <button id="addBtn" class="bg-blue-600 text-white px-4 rounded-r-lg hover:bg-blue-700 transition-all">Add</button>
     </div>
-    <ul id="taskList" class="space-y-2"></ul>
+
+    <ul id="taskList" class="space-y-3"></ul>
   </div>
 
   <script>
@@ -35,21 +42,28 @@
       taskList.innerHTML = '';
       tasks.forEach((task, index) => {
         const li = document.createElement('li');
-        li.className = 'flex items-center bg-gray-100 p-2 rounded shadow-sm';
+        li.className = `flex items-center justify-between bg-blue-50 p-3 rounded-lg shadow-sm group ${task.completed ? 'completed' : ''}`;
         li.setAttribute('draggable', true);
         li.dataset.index = index;
+
         li.innerHTML = `
-          <span class="flex-1">${task}</span>
-          <button class="text-red-500 delete-btn text-xl font-bold px-2">&times;</button>
+          <span class="flex items-center gap-2">
+            <span class="cursor-grab text-lg">📍</span>
+            <span class="transition-all">${task.text}</span>
+          </span>
+          <div class="flex gap-2">
+            <button class="toggle-complete bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600">✔</button>
+            <button class="delete-btn bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600">🗑</button>
+          </div>
         `;
         taskList.appendChild(li);
       });
     }
 
     addBtn.addEventListener('click', () => {
-      const newTask = taskInput.value.trim();
-      if (newTask) {
-        tasks.push(newTask);
+      const newTaskText = taskInput.value.trim();
+      if (newTaskText) {
+        tasks.push({ text: newTaskText, completed: false });
         saveTasks();
         renderTasks();
         taskInput.value = '';
@@ -57,21 +71,21 @@
     });
 
     taskInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        addBtn.click();
-      }
+      if (e.key === 'Enter') addBtn.click();
     });
 
     taskList.addEventListener('click', (e) => {
+      const index = e.target.closest('li')?.dataset.index;
       if (e.target.classList.contains('delete-btn')) {
-        const index = e.target.closest('li').dataset.index;
         tasks.splice(index, 1);
-        saveTasks();
-        renderTasks();
+      } else if (e.target.classList.contains('toggle-complete')) {
+        tasks[index].completed = !tasks[index].completed;
       }
+      saveTasks();
+      renderTasks();
     });
 
-    // Drag-and-drop support
+    // Drag-and-drop logic
     let draggedIndex;
 
     taskList.addEventListener('dragstart', (e) => {
@@ -89,10 +103,10 @@
       e.preventDefault();
       const target = e.target.closest('li');
       if (!target || target.classList.contains('dragging')) return;
-      const draggedOverIndex = target.dataset.index;
-      if (draggedIndex !== draggedOverIndex) {
+      const droppedIndex = target.dataset.index;
+      if (draggedIndex !== droppedIndex) {
         const [movedTask] = tasks.splice(draggedIndex, 1);
-        tasks.splice(draggedOverIndex, 0, movedTask);
+        tasks.splice(droppedIndex, 0, movedTask);
         saveTasks();
         renderTasks();
       }
