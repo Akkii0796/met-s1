@@ -1,975 +1,125 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Monthly Expense Tracker</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <style>
-        :root {
-            --primary: #5a95f5;
-            --accent: #4dd0e1;
-            --danger: #ff6b6b;
-            --success: #50fa7b;
-            --warn: #f1fa8c;
-            --bg: #212936;
-            --card-bg: #2a3344;
-            --input-bg: #252e3d;
-            --border: #3a455b;
-            --highlight-bg: #313b4e;
-            --text-primary: #f8f8f2;
-            --text-secondary: #bd93f9;
-            --radius: 12px;
-            --shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.1);
-            --font-lg: 1.15rem;
-            --font-base: 1.0rem;
-            --font-sm: .95rem;
-        }
-        html, body { background: var(--bg) !important; }
-        body {
-            margin: 0;
-            background: var(--bg);
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-            color: var(--text-primary);
-            font-size: var(--font-base);
-        }
-        .app-wrap { max-width: 410px; margin: 0 auto 60px auto; }
-        .app-header {
-            background: linear-gradient(92deg, #2a3344, #2E3A50 75%, var(--primary) 120%);
-            color: #fff;
-            border-radius: 0 0 var(--radius) var(--radius);
-            padding: 1.1rem 1.2rem 1.0rem 1.2rem;
-            box-shadow: 0 6px 24px rgba(30, 41, 59, 0.2);
-            text-align: center;
-            font-size: var(--font-lg);
-            font-weight: 700;
-            letter-spacing: .3px;
-            position: sticky; top: 0; z-index: 11; user-select: none;
-            display: flex; align-items: center; justify-content: center;
-        }
-        .header-title { flex: 1; }
-        .header-settings {
-            color: #fff; font-size: 1.5em; background: none; border: none;
-            margin-left: 8px; margin-right: -7px; cursor: pointer; opacity: 0.9; transition: opacity .14s;
-        }
-        .header-settings:active { opacity: 0.6; }
-        .tab-content { display: none; animation: fadeIn .2s;}
-        .tab-content.active { display: block;}
-        .section-card {
-            background: var(--card-bg);
-            border-radius: var(--radius);
-            padding: 1.1rem 1rem .8rem 1rem;
-            margin: 18px 10px 0 10px;
-            box-shadow: var(--shadow);
-            border: 1px solid var(--border);
-        }
-        .section-title {
-            display: flex;
-            align-items: center;
-            gap: 7px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: var(--primary);
-            margin-bottom: 9px;
-        }
-        .budget-summary { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;}
-        .budget-card {
-            flex: 1 1 0; background: linear-gradient(97deg, #313b4e 0%, #3a455b 100%);
-            color: #fff; border-radius: var(--radius); text-align: center;
-            padding: .47rem 0 .45rem 0; font-size: .99rem; box-shadow: 0 1px 7px rgba(0,0,0,0.05);
-            min-width: 100px;
-        }
-        .budget-card .amount { font-size: 1.21rem; font-weight: 700; margin-top: .13rem;}
-        .progress-bar-wrap { margin: .2rem 0 .6rem 0;}
-        .progress-bar { width: 100%; height: 12px; background: #1d2736; border-radius: 9px; overflow: hidden;}
-        .progress-fill { height: 100%; background: linear-gradient(90deg, var(--primary), var(--accent)); transition: width .6s cubic-bezier(.42,0,.58,1);}
-        .progress-fill.warn { background: linear-gradient(90deg,var(--warn),#ffe066);}
-        .progress-fill.danger { background: linear-gradient(90deg,#ef4444,#f87171);}
-        .progress-text { font-size: var(--font-sm); margin-top: 3px; text-align: right; color:var(--primary);}
-        .form-row { display: flex; gap: 8px; margin-bottom: .8rem; flex-wrap: wrap; }
-        .form-group { margin-bottom: .55rem; flex: 1 1 120px; min-width: 0;}
-        .form-group label {
-            font-weight: 600; font-size: var(--font-sm);
-            margin-bottom: 3px; display: block; color: var(--primary);
-        }
-        input, select, textarea {
-            width: 100%; padding: 10px 9px; border-radius: 7px;
-            border: 1.5px solid var(--border); font-size: var(--font-base);
-            background: var(--input-bg); color: var(--text-primary);
-            transition: border .16s, background .16s;
-            box-sizing: border-box;
-        }
-        input:focus, select:focus, textarea:focus { border: 1.7px solid var(--primary); outline: none; background: #222a35;}
-        textarea { resize: vertical; }
-        .btn {
-            padding: 9px 17px; border: none; border-radius: 7px;
-            background: linear-gradient(90deg,var(--primary),var(--accent));
-            color: #fff; font-size: var(--font-base); font-weight: 600;
-            cursor: pointer; margin-right: 5px; margin-bottom: 2px;
-            transition: filter .15s, transform .17s;
-            box-shadow: 0 1.5px 8px rgba(90, 149, 245, 0.15);
-        }
-        .btn:hover { filter: brightness(1.1); }
-        .btn:active { transform: scale(0.97); }
-        .btn.secondary { background: #44475a; color: #bd93f9;}
-        .btn.danger { background: linear-gradient(90deg,var(--danger),#ff8787);}
-        .btn.success { background: linear-gradient(90deg,var(--success),#69ff8c);}
-        .btn.small { padding: 4px 10px; font-size: .97em;}
-        .btn-group { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 6px;}
-        .table-container {
-            overflow-x: auto;
-            border-radius: var(--radius);
-            background: var(--card-bg);
-            box-shadow: 0 1px 8px rgba(0,0,0,0.04);
-            border: 1px solid var(--border);
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: .97rem;
-            background: var(--card-bg);
-            color: var(--text-primary);
-            min-width: 660px;
-        }
-        th, td {
-            padding: 8px 7px;
-            border-bottom: 1px solid var(--border);
-            text-align: left;
-            background: var(--card-bg);
-            white-space: nowrap;
-        }
-        tr:active { background-color: var(--highlight-bg); }
-        th {
-            background: var(--highlight-bg);
-            color: var(--text-secondary);
-            font-size: .98em;
-            font-weight: 700;
-        }
-        td.amount { font-weight: bold; font-size: 1.09em; color: var(--primary);}
-        td.note { max-width: 100px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
-        td.actions { min-width: 80px;}
-        .compact-row { font-size: .98em; height: 34px; }
-        .compact-row td { padding: 7px 6px; }
-        th:first-child, td:first-child { position: sticky; left: 0; z-index: 1;}
-        th:first-child { background: var(--highlight-bg); }
-        td:first-child { background: var(--card-bg); }
-        .expenses-table tr.selected { background: #37435a; }
-        tr.selected td:first-child { background: #37435a; }
-        .bulk-checkbox { width: 17px; height: 17px;}
-        .user-pill {
-            background: #44475a;
-            padding: 3px 10px;
-            border-radius: 12px;
-            font-size: .98em;
-            margin-right: 3px;
-            color: var(--text-secondary);
-            border: 1px solid #6272a4;
-        }
-        .chart-grid { display: grid; grid-template-columns: 1fr; gap: 18px; margin-bottom: 15px;}
-        .chart-container { background: var(--card-bg); border-radius: var(--radius); padding: .65rem .2rem .75rem .2rem; border: 1px solid var(--border); }
-        .chart-container h4 { font-size: 1em; font-weight: 600; margin-bottom: 7px; color: var(--primary); text-align: center;}
-        .top-list { display: flex; gap: 10px; margin-bottom: .5rem; justify-content: center;}
-        .top-box { background: #44475a; border-radius: 10px; padding: 9px 12px; font-size: .98em; color: #ffb86c; font-weight: 600; min-width: 88px; text-align: center; box-shadow: 0 1px 7px rgba(0,0,0,0.1);}
-        .top-box.vendor { background: #6272a4; color: #8be9fd;}
-        .modal-backdrop { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index: 1101; display: flex; align-items: center; justify-content: center;}
-        .modal { background: var(--card-bg); border-radius: var(--radius); padding: 1.09rem .8rem .83rem .8rem; box-shadow: 0 10px 36px rgba(0,0,0,0.2); max-width: 98vw; width: 340px; min-width: 0; position: relative; animation: fadeIn .14s; border: 1px solid var(--border);}
-        .modal-header { font-weight: 600; font-size: 1.08em; margin-bottom: .4rem; display: flex; align-items: center; gap: 8px; color: var(--primary);}
-        .modal-close { position: absolute; right: 13px; top: 8px; background: none; border: none; font-size: 1.2em; color: #9ca3af; cursor: pointer;}
-        .modal-content { margin-bottom: .8rem;}
-        .category-chip, .user-chip { display: inline-block; background: #44475a; color: var(--text-secondary); padding: 3px 10px; border-radius: 10px; font-size: .97em; margin: 3px 6px 3px 0; border: 1px solid #6272a4; user-select: none;}
-        .chip-remove { margin-left: 4px; color: var(--danger); cursor: pointer; font-size: 1.03em; font-weight: bold;}
-        .toast { position: fixed; top: 19px; left: 50%; transform: translateX(-50%); min-width: 140px; max-width: 95vw; padding: 10px 16px; font-size: .97em; border-radius: var(--radius); z-index: 2002; color: #fff; box-shadow: var(--shadow); animation: fadeIn .18s; text-align: center;}
-        .toast.success { background: var(--success); color: #212936; }
-        .toast.error { background: var(--danger); }
-        .toast.info { background: var(--primary); }
-        .bottom-nav {
-            position: fixed;
-            bottom: 0; left: 0; right: 0;
-            height: 56px;
-            background: #2a3344;
-            box-shadow: 0 -2px 14px rgba(0,0,0,0.15);
-            display: flex;
-            justify-content: space-around;
-            align-items: stretch;
-            z-index: 99;
-            user-select: none;
-            border-top: 1px solid var(--border);
-        }
-        .nav-btn {
-            flex: 1;
-            border: none;
-            background: none;
-            color: #bd93f9;
-            font-size: 1rem;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            font-weight: 500;
-            cursor: pointer;
-            transition: color .13s;
-        }
-        .nav-btn.active { color: var(--primary); font-weight: 700;}
-        .nav-btn .material-icons { font-size: 1.37em;}
-        .nav-label { font-size: .86em; margin-top: -2.5px;}
-        #loader { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index: 3000; display: none; align-items: center; justify-content: center; color: var(--accent); font-size: 1.5rem; font-weight: bold; }
-
-        @media (max-width: 650px) {
-            .form-row { flex-direction: column; gap: 4px;}
-            .form-group { min-width: 0; width: 100%;}
-            .section-card { margin-left: 5px; margin-right: 5px; padding-left: 10px; padding-right: 10px; }
-            .toast { top: auto; bottom: 70px; }
-        }
-        @media (min-width: 701px) {
-            .bottom-nav { max-width: 410px; left: 50%; transform: translateX(-50%); border-radius: var(--radius) var(--radius) 0 0;}
-        }
-        @keyframes fadeIn { from {opacity: 0; transform: translateY(-10px);} to {opacity: 1; transform: translateY(0);} }
-        .toast { animation: toastIn .2s; }
-        @keyframes toastIn { from {opacity: 0; transform: translate(-50%, 20px);} to {opacity: 1; transform: translate(-50%, 0);} }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Task Manager</title>
+  https://cdn.tailwindcss.com
 </head>
-<body>
-<div id="loader">Loading...</div>
-<div class="app-wrap">
-    <div class="app-header">
-        <span class="header-title" id="appHeader">Monthly Expense Tracker</span>
-        <button class="header-settings" onclick="openSettingsModal()" title="Settings">
-            <span class="material-icons">settings</span>
-        </button>
+<body class="bg-gray-100 min-h-screen p-4">
+  <div class="max-w-4xl mx-auto">
+    <h1 class="text-3xl font-bold text-center mb-6">📝 Task Manager</h1>
+
+    <!-- Input Section -->
+    <div classflex flex-col sm:flex-row gap-2 mb-6">
+      <input id="taskInput" type="text" placeholder="Enter a task..." class="flex-1 p-2 border rounded" />
+      <button id="toggleType" class="px-4 py-2 bg-green-500 text-white rounded">🛒 List</button>
+      <button id="addTask" class="px-4 py-2 bg-blue-500 text-white rounded text-xl">＋</button>
     </div>
 
-    <div id="tab-dashboard" class="tab-content active">
-        <div class="section-card" style="margin-top:22px;">
-            <div class="section-title"><span class="material-icons">account_balance_wallet</span> Monthly Budget</div>
-            <div class="budget-summary">
-                <div class="budget-card"><div>Total Budget</div><div class="amount" id="totalBudget">₹0</div></div>
-                <div class="budget-card"><div>Total Spent</div><div class="amount" id="totalSpent">₹0</div></div>
-                <div class="budget-card"><div>Remaining</div><div class="amount" id="remainingBudget">₹0</div></div>
-            </div>
-            <div class="progress-bar-wrap">
-                <div class="progress-bar"><div class="progress-fill" id="budgetProgress"></div></div>
-                <div class="progress-text" id="progressText"></div>
-            </div>
-            <div class="form-row" style="margin-bottom:0;">
-                <input type="number" id="newBudget" placeholder="Set new monthly budget" min="0">
-                <button class="btn success" onclick="setBudget()">Set</button>
-            </div>
-        </div>
-        <div class="section-card">
-            <div class="section-title"><span class="material-icons">add_circle</span> Add Expense</div>
-            <form id="expenseForm">
-                <div class="form-row">
-                    <div class="form-group"><label>User</label><select id="expUser"></select></div>
-                    <div class="form-group"><label>Category</label><select id="expCategory"></select></div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group"><label>Vendor</label><input type="text" id="expVendor" required placeholder="e.g., Amazon, Starbucks"></div>
-                    <div class="form-group"><label>Amount (₹)</label><input type="number" id="expAmount" required min="0" step="0.01" placeholder="0.00"></div>
-                </div>
-                <div class="form-group"><label>Date</label><input type="date" id="expDate" required></div>
-                <div class="form-group"><label>Note (Optional)</label>
-                    <textarea id="expNote" rows="2" placeholder="Add any notes..."></textarea>
-                </div>
-                <button type="submit" class="btn success" id="addExpenseBtn">Add Expense</button>
-            </form>
-        </div>
-        <div class="section-card">
-            <div class="section-title"><span class="material-icons">history</span> This Month's Expenses</div>
-            <div class="btn-group">
-                <button class="btn danger" onclick="deleteSelectedExpenses()">Delete Selected</button>
-                <button class="btn" onclick="downloadCSV()">Export CSV</button>
-                <button class="btn" onclick="downloadPDF()">Export PDF</button>
-                <span id="selectedCount" style="font-size:.97em;color:#aaa; align-self: center;"></span>
-            </div>
-            <div class="table-container">
-                <table id="recentExpensesTable" class="expenses-table">
-                    <thead>
-                        <tr>
-                            <th><input type="checkbox" id="selectAll" class="bulk-checkbox" onchange="toggleSelectAll(this)"></th>
-                            <th>Date</th>
-                            <th>User</th>
-                            <th>Category</th>
-                            <th>Vendor</th>
-                            <th>Amount</th>
-                            <th>Note</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-        </div>
+    <!-- Summary -->
+    <div id="summary" class="text-center text-gray-700 mb-4"></div>
+
+    <!-- Task Sections -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="bg-white p-4 rounded shadow">
+        <h2 class="text-xl font-semibold mb-2">🛒 List Items (<span id="listCount">0</span>)</h2>
+        <ul id="listTasks" class="space-y-2"></ul>
+      </div>
+      <div class="bg-white p-4 rounded shadow">
+        <h2 class="text-xl font-semibold mb-2">🔔 Reminders (<span id="reminderCount">0</span>)</h2>
+        <ul id="reminderTasks" class="space-y-2"></ul>
+      </div>
     </div>
+  </div>
 
-    <div id="tab-analytics" class="tab-content">
-        <div class="section-card" style="margin-top:22px;">
-            <div class="section-title"><span class="material-icons">insights</span> Analytics & Insights</div>
-            <div class="chart-grid">
-                <div class="chart-container">
-                    <h4>Spend by Category</h4>
-                    <canvas id="categoryPieChart" height="180"></canvas>
-                </div>
-                 <div class="chart-container">
-                    <h4>Spend by User</h4>
-                    <canvas id="userSpendingChart" height="180"></canvas>
-                </div>
-                <div class="chart-container">
-                    <h4>Daily Spend (This Month)</h4>
-                    <canvas id="dailyLineChart" height="170"></canvas>
-                </div>
-            </div>
-            <div style="margin-bottom: .7rem; font-size:1.03em; text-align: center;">
-                <b>Top Categories</b>
-                <div class="top-list" id="topCategories"></div>
-            </div>
-            <div style="margin-bottom: .1rem; font-size:1.03em; text-align: center;">
-                <b>Top Vendors</b>
-                <div class="top-list" id="topVendors"></div>
-            </div>
-        </div>
-    </div>
+  <script>
+    const taskInput = document.getElementById('taskInput');
+    const toggleType = document.getElementById('toggleType');
+    const addTaskBtn = document.getElementById('addTask');
+    const listTasks = document.getElementById('listTasks');
+    const reminderTasks = document.getElementById('reminderTasks');
+    const listCount = document.getElementById('listCount');
+    const reminderCount = document.getElementById('reminderCount');
+    const summary = document.getElementById('summary');
 
-    <div id="tab-search" class="tab-content">
-        <div class="section-card" style="margin-top:22px;">
-            <div class="section-title"><span class="material-icons">search</span> Search All Expenses</div>
-            <div class="form-row">
-                <div class="form-group"><label for="searchText">Search</label>
-                    <input type="text" id="searchText" placeholder="Search by vendor, note, etc..."></div>
-            </div>
-            <div class="form-row">
-                <div class="form-group"><label for="startDate">Start Date</label>
-                    <input type="date" id="startDate"></div>
-                <div class="form-group"><label for="endDate">End Date</label>
-                    <input type="date" id="endDate"></div>
-            </div>
-            <div class="btn-group">
-                <button class="btn" onclick="searchExpenses()">🔍 Search</button>
-                <button class="btn secondary" onclick="clearFilters()">🔄 Clear</button>
-                <button class="btn" onclick="downloadFilteredCSV()">Export Filtered CSV</button>
-            </div>
-            <div class="table-container">
-                <table id="searchResultsTable">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>User</th>
-                            <th>Category</th>
-                            <th>Vendor</th>
-                            <th>Amount</th>
-                            <th>Note</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-    <div id="modalRoot"></div>
-    <div id="toast"></div>
-</div>
-<nav class="bottom-nav">
-    <button class="nav-btn active" id="nav-dashboard" onclick="showTab('dashboard')">
-        <span class="material-icons">dashboard</span>
-        <div class="nav-label">Dashboard</div>
-    </button>
-    <button class="nav-btn" id="nav-analytics" onclick="showTab('analytics')">
-        <span class="material-icons">insights</span>
-        <div class="nav-label">Analytics</div>
-    </button>
-    <button class="nav-btn" id="nav-search" onclick="showTab('search')">
-        <span class="material-icons">search</span>
-        <div class="nav-label">Search</div>
-    </button>
-</nav>
+    let taskType = 'list'; // 'list' or 'reminder'
+    let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
 
-<script>
-    // === STATE ===
-    const STORAGE = {
-        EXPENSES: "exp_trk_expenses_v2",
-        BUDGET: "exp_trk_budget_v2",
-        CATEGORIES: "exp_trk_categories_v2",
-        USERS: "exp_trk_users_v2",
-        BUDGET_MONTH: "exp_trk_budget_month_v2",
-    };
-    const DEFAULT_CATEGORIES = [
-        "Groceries", "Bills", "Travel", "Food", "Health", "Shopping", "Entertainment", "Other"
-    ];
-    const DEFAULT_USERS = ["User 1"];
-    let expenses = [], budget = 0, categories = [], users = [];
-    let selectedExpenseIds = [], editExpenseId = null, filteredExpenses = [];
-    let currentMonthExpenses = [];
+    if (tasks.length === 0) {
+      tasks = [
+        { id: Date.now(), text: 'Buy groceries', type: 'list', completed: false },
+        { id: Date.now() + 1, text: 'Call mom', type: 'reminder', completed: false }
+      ];
+      saveTasks();
+    }
 
-    // === INIT ===
-    document.addEventListener('DOMContentLoaded', function() {
-        loadState();
-        checkNewMonth();
-        populateUserCat();
-        renderAll();
-        document.getElementById('expenseForm').addEventListener('submit', handleExpenseSubmission);
-        document.getElementById('expDate').valueAsDate = new Date();
-        if(location.hash) showTab(location.hash.replace('#tab-',''));
+    toggleType.addEventListener('click', () => {
+      taskType = taskType === 'list' ? 'reminder' : 'list';
+      toggleType.textContent = taskType === 'list' ? '🛒 List' : '🔔 Reminder';
+      toggleType.className = taskType === 'list'
+        ? 'px-4 py-2 bg-green-500 text-white rounded'
+        : 'px-4 py-2 bg-orange-500 text-white rounded';
     });
 
-    function renderAll() {
-        setAppHeaderMonth();
-        renderBudget();
-        renderExpensesTable();
-        if (document.getElementById('tab-analytics').classList.contains('active')) {
-            renderCharts();
-            renderTopLists();
-        }
-    }
-    
-    function setAppHeaderMonth() {
-        const mon = new Date();
-        const mStr = mon.toLocaleString('en-US', { month: 'long' });
-        document.getElementById('appHeader').textContent = `${mStr} ${mon.getFullYear()}`;
+    addTaskBtn.addEventListener('click', () => {
+      const text = taskInput.value.trim();
+      if (!text) return;
+      tasks.push({ id: Date.now(), text, type: taskType, completed: false });
+      taskInput.value = '';
+      saveTasks();
+      renderTasks();
+    });
+
+    function saveTasks() {
+      localStorage.setItem('tasks', JSON.stringify(tasks));
     }
 
-    // === TABS ===
-    function showTab(tabName) {
-        document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-        document.getElementById('tab-'+tabName).classList.add('active');
-        document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-        document.getElementById('nav-'+tabName).classList.add('active');
-        if(tabName === 'analytics') { renderCharts(); renderTopLists(); }
-        if(tabName === 'dashboard') renderExpensesTable();
-        if(tabName === 'search') searchExpenses();
-        history.replaceState(null, '', '#tab-'+tabName);
-    }
-    // === STATE MGMT ===
-    function saveState() {
-        localStorage.setItem(STORAGE.EXPENSES, JSON.stringify(expenses));
-        localStorage.setItem(STORAGE.BUDGET, JSON.stringify(budget));
-        localStorage.setItem(STORAGE.CATEGORIES, JSON.stringify(categories));
-        localStorage.setItem(STORAGE.USERS, JSON.stringify(users));
-        localStorage.setItem(STORAGE.BUDGET_MONTH, new Date().toISOString().slice(0, 7));
+    function deleteTask(id) {
+      tasks = tasks.filter(t => t.id !== id);
+      saveTasks();
+      renderTasks();
     }
 
-    function loadState() {
-        try { expenses = JSON.parse(localStorage.getItem(STORAGE.EXPENSES)) || []; } catch { expenses = []; }
-        try { budget = JSON.parse(localStorage.getItem(STORAGE.BUDGET)) || 0; } catch { budget = 0; }
-        try { categories = JSON.parse(localStorage.getItem(STORAGE.CATEGORIES)) || DEFAULT_CATEGORIES.slice(); } catch { categories = DEFAULT_CATEGORIES.slice(); }
-        try { users = JSON.parse(localStorage.getItem(STORAGE.USERS)) || DEFAULT_USERS.slice(); } catch { users = DEFAULT_USERS.slice(); }
-        if (users.length === 0) users = DEFAULT_USERS.slice();
-        if (categories.length === 0) categories = DEFAULT_CATEGORIES.slice();
+    function toggleComplete(id) {
+      const task = tasks.find(t => t.id === id);
+      if (task) task.completed = !task.completed;
+      saveTasks();
+      renderTasks();
     }
 
-    // === BUDGET ===
-    function checkNewMonth() {
-        const lastBudgetMonth = localStorage.getItem(STORAGE.BUDGET_MONTH);
-        const currentMonth = new Date().toISOString().slice(0, 7);
-        if (lastBudgetMonth && lastBudgetMonth !== currentMonth) {
-            if (confirm("A new month has started! Would you like to reset your monthly budget to zero?")) {
-                budget = 0;
-                saveState();
-            } else {
-                // Carry over the budget, just update the month
-                saveState();
-            }
-        }
-    }
+    function renderTasks() {
+      listTasks.innerHTML = '';
+      reminderTasks.innerHTML = '';
+      let completed = 0, remaining = 0;
+      let listPending = 0, reminderPending = 0;
 
-    function renderBudget() {
-        document.getElementById('totalBudget').textContent = "₹" + budget.toLocaleString("en-IN");
-        const currentMonth = new Date().toISOString().slice(0,7);
-        const spent = expenses.filter(e=>e.date.startsWith(currentMonth)).reduce((t,e)=>t+Number(e.amount),0);
-        document.getElementById('totalSpent').textContent = "₹" + spent.toLocaleString("en-IN");
-        const remaining = budget - spent;
-        const remainingEl = document.getElementById('remainingBudget');
-        remainingEl.textContent = "₹" + remaining.toLocaleString("en-IN");
-        remainingEl.style.color = remaining < 0 ? 'var(--danger)' : '#fff';
+      tasks.forEach(task => {
+        const li = document.createElement('li');
+        li.className = `flex justify-between items-center p-2 border rounded ${task.completed ? 'bg-green-100' : ''}`;
+        li.innerHTML = `
+          <span class="flex-1 ${task.completed ? 'line-through text-gray-500' : ''}">${task.text}</span>
+          <button onclick="toggleComplete(${task.id})" class="mx-1 text-green-600">✔️</button>
+          <button onclick="deleteTask(${task.id})" class="text-red-500">🗑️</button>
+        `;
 
-        const percent = budget > 0 ? Math.min(100, (spent/budget)*100) : 0;
-        const pf = document.getElementById('budgetProgress');
-        pf.style.width = percent+"%";
-        pf.className = 'progress-fill';
-        if(percent >= 90) pf.classList.add('danger');
-        else if(percent >= 70) pf.classList.add('warn');
-        document.getElementById('progressText').textContent = `Used: ${percent.toFixed(1)}%`;
-    }
-
-    function setBudget() {
-        let val = parseFloat(document.getElementById('newBudget').value);
-        if(isNaN(val) || val<0) { showToast("Invalid budget amount", "error"); return;}
-        budget = val;
-        saveState(); renderBudget();
-        document.getElementById('newBudget').value = "";
-        showToast("Budget updated!","success");
-    }
-
-    // === EXPENSE CRUD ===
-    function handleExpenseSubmission(e) {
-        e.preventDefault();
-        const newExpense = {
-            id: (Date.now() + Math.random()).toString(36),
-            recordedBy: document.getElementById('expUser').value,
-            category: document.getElementById('expCategory').value,
-            vendor: document.getElementById('expVendor').value.trim(),
-            amount: parseFloat(document.getElementById('expAmount').value),
-            date: document.getElementById('expDate').value,
-            note: document.getElementById('expNote').value.trim(),
-            timestamp: Date.now()
-        };
-
-        if(!newExpense.recordedBy || !newExpense.category || !newExpense.vendor || isNaN(newExpense.amount) || newExpense.amount <= 0 || !newExpense.date) {
-            showToast("Please fill all fields correctly","error"); return;
-        }
-        expenses.push(newExpense);
-        saveState();
-        e.target.reset();
-        document.getElementById('expDate').valueAsDate = new Date();
-        showToast("Expense added!","success");
-        renderAll();
-    }
-
-    function openEditExpenseModal(id) {
-        const e = expenses.find(exp => exp.id === id);
-        if(!e) return;
-        editExpenseId = id;
-        showEditExpenseModal(e);
-    }
-    
-    function updateEditedExpenseInUI(expense) {
-        const row = document.querySelector(`#recentExpensesTable tr[data-id="${expense.id}"]`);
-        if (row) {
-            row.cells[1].textContent = formatDate(expense.date);
-            row.cells[2].innerHTML = `<span class="user-pill">${expense.recordedBy}</span>`;
-            row.cells[3].textContent = expense.category;
-            row.cells[4].textContent = expense.vendor;
-            row.cells[5].textContent = `₹${(+expense.amount).toLocaleString("en-IN")}`;
-            row.cells[6].textContent = expense.note || "";
-            row.cells[6].title = expense.note || "";
-        }
-    }
-
-    function saveEditExpense() {
-        const updatedData = {
-            recordedBy: document.getElementById('editUser').value,
-            category: document.getElementById('editCategory').value,
-            vendor: document.getElementById('editVendor').value.trim(),
-            amount: parseFloat(document.getElementById('editAmount').value),
-            date: document.getElementById('editDate').value,
-            note: document.getElementById('editNote').value.trim()
-        };
-
-        if(!updatedData.recordedBy || !updatedData.category || !updatedData.vendor || isNaN(updatedData.amount) || updatedData.amount <= 0 || !updatedData.date) {
-            showToast("Fill all fields correctly","error"); return;
-        }
-
-        let ix = expenses.findIndex(e=>e.id===editExpenseId);
-        if(ix!==-1) {
-            expenses[ix] = {...expenses[ix], ...updatedData};
-            saveState();
-            updateEditedExpenseInUI(expenses[ix]); // More efficient UI update
-            renderBudget(); 
-            if (document.getElementById('tab-analytics').classList.contains('active')) {
-                renderCharts(); 
-                renderTopLists();
-            }
-            showToast("Expense updated","success");
-        }
-        closeModal();
-    }
-
-    function deleteExpense(id) {
-        if(!confirm("Are you sure you want to delete this expense?")) return;
-        expenses = expenses.filter(e=>e.id!==id);
-        saveState();
-        renderAll();
-        showToast("Expense deleted.","success");
-    }
-
-    function renderExpensesTable() {
-        const currentMonth = new Date().toISOString().slice(0, 7);
-        currentMonthExpenses = expenses
-            .filter(e => e.date.startsWith(currentMonth))
-            .sort((a, b) => b.timestamp - a.timestamp);
-
-        selectedExpenseIds = [];
-        let tbody = document.querySelector("#recentExpensesTable tbody");
-        let rows = currentMonthExpenses.map(e => compactExpenseRow(e)).join('');
-        tbody.innerHTML = rows || `<tr><td colspan="8" style="text-align:center;padding:17px;">No expenses for this month.</td></tr>`;
-        updateSelectedCount();
-    }
-    
-    function compactExpenseRow(e) {
-        const isSelected = selectedExpenseIds.includes(e.id);
-        return `
-            <tr data-id="${e.id}" class="compact-row${isSelected ? " selected" : ""}" onclick="rowClicked(event, '${e.id}')">
-                <td><input type="checkbox" class="bulk-checkbox" onchange="selectExpense('${e.id}', this.checked)" ${isSelected ? "checked" : ""}></td>
-                <td>${formatDate(e.date)}</td>
-                <td><span class="user-pill">${e.recordedBy}</span></td>
-                <td>${e.category}</td>
-                <td>${e.vendor}</td>
-                <td class="amount">₹${(+e.amount).toLocaleString("en-IN")}</td>
-                <td class="note" title="${e.note||""}">${e.note||""}</td>
-                <td class="actions">
-                    <button class="btn small" onclick="event.stopPropagation(); openEditExpenseModal('${e.id}')">Edit</button>
-                    <button class="btn small danger" onclick="event.stopPropagation(); deleteExpense('${e.id}')">Del</button>
-                </td>
-            </tr>`;
-    }
-    
-    function rowClicked(event, id) {
-        if (event.target.closest('.actions, .bulk-checkbox')) return;
-        const checkbox = event.currentTarget.querySelector('.bulk-checkbox');
-        checkbox.checked = !checkbox.checked;
-        selectExpense(id, checkbox.checked);
-        event.currentTarget.classList.toggle('selected', checkbox.checked);
-    }
-
-    function selectExpense(id, isChecked) {
-        const row = document.querySelector(`#recentExpensesTable tr[data-id="${id}"]`);
-        if (isChecked) {
-            if (!selectedExpenseIds.includes(id)) selectedExpenseIds.push(id);
+        if (task.type === 'list') {
+          listTasks.appendChild(li);
+          if (!task.completed) listPending++;
         } else {
-            selectedExpenseIds = selectedExpenseIds.filter(x=>x!==id);
+          reminderTasks.appendChild(li);
+          if (!task.completed) reminderPending++;
         }
-        row.classList.toggle('selected', isChecked);
-        updateSelectedCount();
+
+        task.completed ? completed++ : remaining++;
+      });
+
+      listCount.textContent = listPending;
+      reminderCount.textContent = reminderPending;
+      summary.textContent = `${completed} completed • ${remaining} remaining`;
     }
 
-    function toggleSelectAll(cb) {
-        selectedExpenseIds = cb.checked ? currentMonthExpenses.map(e => e.id) : [];
-        // Re-render to show selection state on all rows
-        let tbody = document.querySelector("#recentExpensesTable tbody");
-        tbody.innerHTML = currentMonthExpenses.map(e => compactExpenseRow(e)).join('') || `<tr>...</tr>`;
-        updateSelectedCount();
-    }
-
-    function updateSelectedCount() {
-        const count = selectedExpenseIds.length;
-        document.getElementById('selectedCount').textContent = count ? `${count} selected` : "";
-        let allCheckbox = document.getElementById('selectAll');
-        if (allCheckbox) {
-            allCheckbox.checked = count > 0 && count === currentMonthExpenses.length;
-            allCheckbox.indeterminate = count > 0 && count < currentMonthExpenses.length;
-        }
-    }
-
-    function deleteSelectedExpenses() {
-        if(selectedExpenseIds.length === 0) { showToast("Select expenses to delete", "info"); return; }
-        if(!confirm(`Delete ${selectedExpenseIds.length} selected expense(s)?`)) return;
-        expenses = expenses.filter(e => !selectedExpenseIds.includes(e.id));
-        saveState();
-        renderAll();
-        showToast("Selected expenses deleted", "success");
-    }
-
-    // === CSV/PDF Export ===
-    function getCsvData(dataArray) {
-        return "Date,User,Category,Vendor,Amount,Note\n" +
-            dataArray.map(e => [
-                `"${e.date}"`, `"${e.recordedBy}"`, `"${e.category}"`, `"${e.vendor}"`, e.amount, `"${(e.note||"").replace(/"/g,'""')}"`
-            ].join(",")).join("\n");
-    }
-    
-    function downloadFile(content, fileName, contentType) {
-        showLoader();
-        setTimeout(() => {
-            const blob = new Blob([content], { type: contentType });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = fileName;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            URL.revokeObjectURL(url);
-            hideLoader();
-        }, 500); // Give loader time to appear
-    }
-    
-    function downloadCSV() {
-        if (!currentMonthExpenses.length) { showToast("No data for this month", "info"); return; }
-        const csv = getCsvData(currentMonthExpenses);
-        downloadFile(csv, `expenses_${new Date().toISOString().slice(0, 7)}.csv`, 'text/csv');
-    }
-
-    function downloadPDF() {
-        if (!currentMonthExpenses.length) { showToast("No data for this month", "info"); return; }
-        showLoader();
-        setTimeout(() => {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            doc.setFontSize(18); doc.text("Monthly Expense Report", 15, 18);
-            doc.setFontSize(12);
-            doc.text(`Month: ${new Date().toLocaleString('default', { month: 'long', year: 'numeric' })}`, 15, 28);
-            doc.text(`Total: ₹${currentMonthExpenses.reduce((s, e) => s + Number(e.amount), 0).toLocaleString("en-IN")}`, 15, 34);
-
-            doc.autoTable({
-                head: [["Date", "User", "Category", "Vendor", "Amount", "Note"]],
-                body: currentMonthExpenses.map(e => [formatDate(e.date), e.recordedBy, e.category, e.vendor, `₹${(+e.amount).toLocaleString("en-IN")}`, e.note || ""]),
-                startY: 40, styles: { fontSize: 9 }, columnStyles: { 0: { cellWidth: 18 }, 4: { halign: 'right' } }
-            });
-            doc.save(`expenses_${new Date().toISOString().slice(0, 7)}.pdf`);
-            hideLoader();
-        }, 500);
-    }
-    
-    // === ANALYTICS & CHARTS ===
-    let chartInstances = {};
-    function renderCharts() {
-        Object.values(chartInstances).forEach(c => { try { c.destroy(); } catch {} });
-        
-        const catAgg = expenses.reduce((acc, e) => {
-            acc[e.category] = (acc[e.category] || 0) + Number(e.amount);
-            return acc;
-        }, {});
-        const sortedCats = Object.entries(catAgg).sort((a,b) => b[1]-a[1]);
-        const catLabels = sortedCats.map(c => c[0]);
-        const catData = sortedCats.map(c => c[1]);
-        
-        chartInstances.catPie = new Chart(document.getElementById('categoryPieChart').getContext('2d'), {
-            type:'doughnut', data:{
-                labels: catLabels, datasets: [{data: catData, backgroundColor: genColors(catLabels.length), borderWidth: 0}]
-            },
-            options:{ responsive: true, maintainAspectRatio: false, plugins:{ legend:{ position:'bottom', labels: { color: 'white' } }, datalabels:{
-                    color:'#fff', font:{weight:'bold'}, formatter:(v,ctx)=>{
-                        let s = ctx.dataset.data.reduce((a,b)=>a+b,0);
-                        let p = (v/s*100); return p > 5 ? p.toFixed(0)+"%" : "";
-                    }
-                }}} , plugins:[ChartDataLabels]
-        });
-
-        const userAgg = expenses.reduce((acc, e) => {
-            acc[e.recordedBy] = (acc[e.recordedBy] || 0) + Number(e.amount);
-            return acc;
-        }, {});
-        const userLabels = Object.keys(userAgg);
-        const userData = Object.values(userAgg);
-        
-        chartInstances.userBar = new Chart(document.getElementById('userSpendingChart').getContext('2d'),{
-            type:'bar', data:{
-                labels:userLabels, datasets:[{label:"Spent (₹)", data:userData, backgroundColor: genColors(userLabels.length, 0.8)}]
-            },
-            options:{ indexAxis: 'y', responsive: true, maintainAspectRatio: false,
-                plugins:{legend:{display:false},datalabels:{anchor:'end',align:'end',color:'white',font:{weight:700}}},
-                scales:{ y: { ticks: { color: 'white' } }, x: { ticks: { color: 'white' } } }
-            }, plugins:[ChartDataLabels]
-        });
-        
-        const currentMonth = new Date().toISOString().slice(0, 7);
-        const daysInMon = new Date(new Date().getFullYear(), new Date().getMonth()+1, 0).getDate();
-        let dayLine = Array(daysInMon).fill(0);
-        expenses.filter(e => e.date.startsWith(currentMonth)).forEach(e => {
-            let day = parseInt(e.date.slice(8,10)) - 1;
-            if(dayLine[day] !== undefined) dayLine[day] += Number(e.amount);
-        });
-        
-        chartInstances.dailyLine = new Chart(document.getElementById('dailyLineChart').getContext('2d'),{
-            type:'line', data:{
-                labels: Array.from({length:daysInMon},(_,i)=>i+1),
-                datasets:[{label:"₹/Day",data:dayLine,fill:true,tension:0.3,backgroundColor:'rgba(90, 149, 245, 0.2)',borderColor: 'var(--primary)'}]
-            },
-            options:{ responsive: true, maintainAspectRatio: false, plugins:{legend:{display:false},datalabels:{display:false}},
-                scales:{ y:{ beginAtZero:true, ticks: { color: 'white' } }, x: { ticks: { color: 'white' } } }
-            }
-        });
-    }
-
-    function genColors(n, alpha = 1) {
-        const palette = ["#5a95f5", "#ff6b6b", "#50fa7b", "#f1fa8c", "#bd93f9", "#ffb86c", "#4dd0e1", "#ff79c6"];
-        return Array.from({length:n},(_,i)=> `rgba(${parseInt(palette[i%palette.length].slice(1,3),16)},${parseInt(palette[i%palette.length].slice(3,5),16)},${parseInt(palette[i%palette.length].slice(5,7),16)}, ${alpha})`);
-    }
-
-    function renderTopLists() {
-        const catAgg = expenses.reduce((acc, e) => { acc[e.category] = (acc[e.category] || 0) + Number(e.amount); return acc; }, {});
-        const topCats = Object.entries(catAgg).sort((a,b) => b[1]-a[1]).slice(0,3);
-        document.getElementById('topCategories').innerHTML = topCats.length ?
-            topCats.map(([cat,amt]) => `<div class="top-box">${cat}<br>₹${amt.toLocaleString("en-IN")}</div>`).join('') :
-            `<div style="color:#aaa">Not enough data</div>`;
-
-        const vendAgg = expenses.reduce((acc, e) => { acc[e.vendor] = (acc[e.vendor] || 0) + Number(e.amount); return acc; }, {});
-        const topVends = Object.entries(vendAgg).sort((a,b) => b[1]-a[1]).slice(0,3);
-        document.getElementById('topVendors').innerHTML = topVends.length ?
-            topVends.map(([vend,amt]) => `<div class="top-box vendor">${vend}<br>₹${amt.toLocaleString("en-IN")}</div>`).join('') :
-            `<div style="color:#aaa">Not enough data</div>`;
-    }
-
-    // === SEARCH & FILTER ===
-    function searchExpenses() {
-        const searchText = document.getElementById('searchText').value.toLowerCase().trim();
-        const startDate = document.getElementById('startDate').value;
-        const endDate = document.getElementById('endDate').value;
-        filteredExpenses = expenses.filter(expense => {
-            const matchesSearch = !searchText ||
-                expense.vendor.toLowerCase().includes(searchText) ||
-                expense.category.toLowerCase().includes(searchText) ||
-                (expense.note && expense.note.toLowerCase().includes(searchText)) ||
-                expense.recordedBy.toLowerCase().includes(searchText);
-            const matchesStartDate = !startDate || expense.date >= startDate;
-            const matchesEndDate = !endDate || expense.date <= endDate;
-            return matchesSearch && matchesStartDate && matchesEndDate;
-        }).sort((a, b) => b.timestamp - a.timestamp);
-        renderSearchResults();
-    }
-    
-    function clearFilters() {
-        document.getElementById('searchText').value = '';
-        document.getElementById('startDate').value = '';
-        document.getElementById('endDate').value = '';
-        filteredExpenses = [];
-        renderSearchResults();
-    }
-    
-    function renderSearchResults() {
-        let tbody = document.querySelector("#searchResultsTable tbody");
-        let rows = filteredExpenses.map(e => `
-            <tr>
-                <td>${formatDate(e.date)}</td>
-                <td><span class="user-pill">${e.recordedBy}</span></td>
-                <td>${e.category}</td>
-                <td>${e.vendor}</td>
-                <td class="amount">₹${(+e.amount).toLocaleString("en-IN")}</td>
-                <td class="note" title="${e.note||""}">${e.note||""}</td>
-                <td class="actions">
-                    <button class="btn small" onclick="openEditExpenseModal('${e.id}')">Edit</button>
-                    <button class="btn small danger" onclick="deleteExpense('${e.id}')">Del</button>
-                </td>
-            </tr>
-        `).join('');
-        tbody.innerHTML = rows || `<tr><td colspan="7" style="text-align:center;color:#aaa;padding:17px;">No results found.</td></tr>`;
-    }
-    
-    function downloadFilteredCSV() {
-        if(!filteredExpenses.length) { showToast("No filtered data to export","info"); return; }
-        const csv = getCsvData(filteredExpenses);
-        downloadFile(csv, `filtered_expenses_${new Date().toISOString().slice(0,10)}.csv`, 'text/csv');
-    }
-
-    // === SETTINGS & MODALS ===
-    function populateUserCat() {
-        document.getElementById('expUser').innerHTML = users.map(u => `<option>${u}</option>`).join('');
-        document.getElementById('expCategory').innerHTML = categories.map(c => `<option>${c}</option>`).join('');
-    }
-
-    function openSettingsModal() {
-        document.getElementById('modalRoot').innerHTML = `
-            <div class="modal-backdrop" onclick="closeModal()">
-                <div class="modal" onclick="event.stopPropagation()">
-                    <button class="modal-close" onclick="closeModal()">&times;</button>
-                    <div class="modal-header"><span class="material-icons">build</span> Manage Data</div>
-                    <div class="modal-content">
-                        <div><b>Categories:</b><div style="display: flex; flex-wrap: wrap; margin-top: 5px;">
-                            ${categories.map((cat,i)=>`
-                                <span class="category-chip">${cat} <span class="chip-remove" onclick="removeCategory('${cat}')">&times;</span></span>
-                            `).join('')}
-                        </div></div>
-                        <div class="form-row" style="margin-top: 10px;">
-                            <input id="catAddInput" placeholder="Add new category..." onkeydown="if(event.key==='Enter'){addCategory()}">
-                            <button class="btn small" onclick="addCategory()">Add</button>
-                        </div>
-                        <hr style="margin:15px 0; border-color: var(--border);">
-                        <div><b>Users:</b><div style="display: flex; flex-wrap: wrap; margin-top: 5px;">
-                            ${users.map((u,i)=>`
-                                <span class="user-chip">${u} <span class="chip-remove" onclick="removeUser('${u}')">&times;</span></span>
-                            `).join('')}
-                        </div></div>
-                        <div class="form-row" style="margin-top: 10px;">
-                            <input id="userAddInput" placeholder="Add new user..." onkeydown="if(event.key==='Enter'){addUser()}">
-                            <button class="btn small" onclick="addUser()">Add</button>
-                        </div>
-                    </div>
-                </div>
-            </div>`;
-    }
-
-    function addCategory() {
-        let inp = document.getElementById('catAddInput');
-        let val = (inp.value||"").trim();
-        if(!val) return;
-        if(categories.some(c => c.toLowerCase() === val.toLowerCase())) { showToast("Category already exists", "info"); return; }
-        categories.push(val);
-        saveAndRefreshSettings();
-    }
-
-    function removeCategory(cat) {
-        if(expenses.some(e => e.category === cat)) {
-            showToast("Cannot delete category in use", "error"); return;
-        }
-        if(!confirm(`Delete category "${cat}"? This cannot be undone.`)) return;
-        categories = categories.filter(c => c !== cat);
-        saveAndRefreshSettings();
-    }
-
-    function addUser() {
-        let inp = document.getElementById('userAddInput');
-        let val = (inp.value||"").trim();
-        if(!val) return;
-        if(users.some(u => u.toLowerCase() === val.toLowerCase())) { showToast("User already exists", "info"); return; }
-        users.push(val);
-        saveAndRefreshSettings();
-    }
-
-    function removeUser(user) {
-        if(users.length <= 1) { showToast("Must have at least one user", "info"); return; }
-        if(expenses.some(e => e.recordedBy === user)) {
-            showToast("Cannot delete user with recorded expenses", "error"); return;
-        }
-        if(!confirm(`Delete user "${user}"? This cannot be undone.`)) return;
-        users = users.filter(u => u !== user);
-        saveAndRefreshSettings();
-    }
-    
-    function saveAndRefreshSettings() {
-        saveState();
-        closeModal();
-        openSettingsModal();
-        populateUserCat();
-        renderAll();
-    }
-    
-    function showEditExpenseModal(e) {
-        document.getElementById('modalRoot').innerHTML = `
-            <div class="modal-backdrop" onclick="closeModal()">
-                <div class="modal" onclick="event.stopPropagation()">
-                    <button class="modal-close" onclick="closeModal()">&times;</button>
-                    <div class="modal-header">Edit Expense</div>
-                    <div class="modal-content">
-                        <div class="form-group"><label>User</label>
-                            <select id="editUser">${users.map(u=>`<option value="${u}" ${e.recordedBy===u?"selected":""}>${u}</option>`).join('')}</select>
-                        </div>
-                        <div class="form-group"><label>Category</label>
-                            <select id="editCategory">${categories.map(c=>`<option value="${c}" ${e.category===c?"selected":""}>${c}</option>`).join('')}</select>
-                        </div>
-                        <div class="form-group"><label>Vendor</label><input type="text" id="editVendor" value="${e.vendor}"></div>
-                        <div class="form-group"><label>Amount (₹)</label><input type="number" id="editAmount" value="${e.amount}"></div>
-                        <div class="form-group"><label>Date</label><input type="date" id="editDate" value="${e.date}"></div>
-                        <div class="form-group"><label>Note</label><textarea id="editNote" rows="2">${e.note||""}</textarea></div>
-                    </div>
-                    <button class="btn success" onclick="saveEditExpense()">Save Changes</button>
-                </div>
-            </div>`;
-    }
-    
-    function closeModal() { document.getElementById('modalRoot').innerHTML = ""; }
-
-    // === UTILITIES ===
-    function showToast(msg, type="success") {
-        let t = document.getElementById('toast');
-        t.innerHTML = `<div class="toast ${type}">${msg}</div>`;
-        setTimeout(()=>{t.innerHTML='';}, 2500);
-    }
-    
-    function formatDate(str) {
-        if(!str) return "";
-        try {
-            return new Date(str + 'T00:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' });
-        } catch {
-            return str;
-        }
-    }
-    
-    function showLoader() { document.getElementById('loader').style.display = 'flex'; }
-    function hideLoader() { document.getElementById('loader').style.display = 'none'; }
-
-</script>
+    renderTasks();
+  </script>
 </body>
 </html>
