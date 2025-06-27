@@ -9,7 +9,7 @@
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       margin: 0;
-      background: #eaf0f6;
+      background: #f0f4f8;
       padding: 10px;
       transition: background 0.3s, color 0.3s;
     }
@@ -30,7 +30,7 @@
     }
     .input-box input[type="text"] {
       width: 100%;
-      padding: 6px;
+      padding: 8px;
       border: 1px solid #ccc;
       border-radius: 6px;
       font-size: 14px;
@@ -53,39 +53,43 @@
     }
     .add-btn { background: #6a11cb; color: #fff; }
     .voice-btn { background: #00b894; color: #fff; }
-    .dark-toggle { background: #333; color: #fff; margin-left: auto; }
+    .dark-toggle { background: none; font-size: 18px; border: none; position: absolute; top: 10px; right: 10px; cursor: pointer; }
 
     .task-columns {
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 12px;
     }
     .section {
       background: white;
-      border-radius: 8px;
-      padding: 10px;
+      border-radius: 10px;
+      padding: 12px;
       font-size: 13px;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+      transition: background 0.3s;
     }
     body.dark .section {
       background: #2c2c2c;
     }
-    #list-section { border-left: 4px solid #4CAF50; }
-    #reminder-section { border-left: 4px solid #FF9800; }
+    #list-section { border-left: 5px solid #4CAF50; }
+    #reminder-section { border-left: 5px solid #FF9800; }
 
     .task {
       display: flex;
       align-items: center;
       justify-content: space-between;
       padding: 6px;
-      background: #f9f9f9;
-      margin-bottom: 4px;
-      border-radius: 5px;
+      background: #fdfdfd;
+      margin-bottom: 6px;
+      border-radius: 6px;
       font-size: 13px;
       cursor: grab;
+      transition: all 0.2s ease-in-out;
     }
-    body.dark .task {
-      background: #444;
+    .task:hover {
+      background-color: #eef3f8;
     }
+    body.dark .task { background: #3a3a3a; }
     .task-content { display: flex; align-items: center; gap: 8px; flex: 1; }
     .task span { font-size: 13px; }
     .completed span { text-decoration: line-through; color: gray; }
@@ -93,9 +97,9 @@
     .actions button {
       background: none;
       border: none;
-      font-size: 13px;
+      font-size: 12px;
       cursor: pointer;
-      color: #555;
+      color: #888;
       margin-left: 4px;
     }
     .edit-input {
@@ -109,13 +113,23 @@
       font-size: 13px;
       margin-top: 10px;
     }
-    .priority-high { color: red; font-weight: bold; }
-    .priority-medium { color: orange; font-weight: bold; }
-    .priority-low { color: green; font-weight: bold; }
+    .priority-choose {
+      display: flex;
+      gap: 5px;
+    }
+    .priority-dot {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+    .priority-high { background: red; }
+    .priority-medium { background: orange; }
+    .priority-low { background: green; }
   </style>
 </head>
 <body>
-  <button class="dark-toggle" onclick="toggleDarkMode()">🌓 Toggle Theme</button>
+  <button class="dark-toggle" onclick="toggleDarkMode()">🌓</button>
   <div class="date-display" id="dateDisplay"></div>
   <h1>🗂️ Life Task Manager</h1>
   <div class="input-box">
@@ -123,9 +137,6 @@
     <div class="type-options">
       <label><input type="radio" name="task-type" value="list" checked> List</label>
       <label><input type="radio" name="task-type" value="reminder"> Reminder</label>
-      <label><input type="radio" name="priority" value="high"> 🔴</label>
-      <label><input type="radio" name="priority" value="medium" checked> 🟡</label>
-      <label><input type="radio" name="priority" value="low"> 🟢</label>
       <button class="add-btn" id="add-task">+</button>
       <button class="voice-btn" onclick="startVoiceInput()">🎤</button>
     </div>
@@ -171,10 +182,11 @@
     function addTask() {
       const text = input.value.trim();
       const type = document.querySelector('input[name="task-type"]:checked').value;
-      const priority = document.querySelector('input[name="priority"]:checked').value;
       if (!text) return;
       const tasks = getTasks();
-      tasks.push({ text, done: false, type, priority });
+      const task = { text, done: false, type };
+      if (type === "reminder") task.priority = null;
+      tasks.push(task);
       saveTasks(tasks);
       input.value = "";
       renderTasks();
@@ -208,10 +220,7 @@
         div.draggable = true;
 
         const span = document.createElement("span");
-        span.textContent = `${task.text} `;
-        const priority = document.createElement("span");
-        priority.className = `priority-${task.priority}`;
-        priority.textContent = task.priority === 'high' ? '🔴' : task.priority === 'medium' ? '🟡' : '🟢';
+        span.textContent = task.text;
 
         const checkbox = document.createElement("input");
         checkbox.type = "checkbox";
@@ -254,7 +263,6 @@
         content.className = "task-content";
         content.appendChild(checkbox);
         content.appendChild(span);
-        content.appendChild(priority);
 
         const actions = document.createElement("div");
         actions.className = "actions";
@@ -262,6 +270,29 @@
         actions.appendChild(deleteBtn);
 
         div.appendChild(content);
+        if (type === "reminder") {
+          if (!task.priority) {
+            const choose = document.createElement("div");
+            choose.className = "priority-choose";
+            ["high", "medium", "low"].forEach(p => {
+              const dot = document.createElement("div");
+              dot.className = `priority-dot priority-${p}`;
+              dot.onclick = () => {
+                const all = getTasks();
+                const match = all.find(t => t.text === task.text && t.type === task.type);
+                match.priority = p;
+                saveTasks(all);
+                renderTasks();
+              };
+              choose.appendChild(dot);
+            });
+            content.appendChild(choose);
+          } else {
+            const dot = document.createElement("div");
+            dot.className = `priority-dot priority-${task.priority}`;
+            content.appendChild(dot);
+          }
+        }
         div.appendChild(actions);
 
         div.addEventListener("dragstart", (e) => {
