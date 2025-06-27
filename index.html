@@ -43,20 +43,13 @@
     }
     .task-columns {
       display: flex;
-      flex-direction: row;
+      flex-direction: column;
       gap: 20px;
-      flex-wrap: wrap;
     }
     .section {
       background: white;
       border-radius: 12px;
       padding: 16px;
-      flex: 1 1 100%;
-    }
-    @media(min-width: 768px) {
-      .section {
-        flex: 1 1 45%;
-      }
     }
     .section h3 {
       margin: 0 0 10px;
@@ -95,6 +88,11 @@
       cursor: pointer;
       color: #555;
       margin-left: 5px;
+    }
+    .edit-input {
+      border: 1px solid #ccc;
+      padding: 4px;
+      border-radius: 4px;
     }
   </style>
 </head>
@@ -159,30 +157,59 @@
       tasks.forEach((task, index) => {
         const div = document.createElement("div");
         div.className = "task" + (task.done ? " completed" : "");
-        div.innerHTML = `
-          <div class="task-content">
-            <input type="checkbox" ${task.done ? "checked" : ""}>
-            <span>${task.text}</span>
-          </div>
-          <div class="actions">
-            <button class="delete-btn">❌</button>
-          </div>
-        `;
 
-        div.querySelector("input[type=checkbox]").onchange = () => {
+        const span = document.createElement("span");
+        span.textContent = task.text;
+
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.checked = task.done;
+        checkbox.onchange = () => {
           const all = getTasks();
           const match = all.find(t => t.text === task.text && t.type === task.type);
-          match.done = !match.done;
+          match.done = checkbox.checked;
           saveTasks(all);
           renderTasks();
         };
 
-        div.querySelector(".delete-btn").onclick = () => {
+        const deleteBtn = document.createElement("button");
+        deleteBtn.innerHTML = "❌";
+        deleteBtn.className = "delete-btn";
+        deleteBtn.onclick = () => {
           const all = getTasks().filter(t => !(t.text === task.text && t.type === task.type));
           saveTasks(all);
           renderTasks();
         };
 
+        const editBtn = document.createElement("button");
+        editBtn.innerHTML = "✏️";
+        editBtn.onclick = () => {
+          const input = document.createElement("input");
+          input.value = task.text;
+          input.className = "edit-input";
+          span.replaceWith(input);
+          input.focus();
+          input.onblur = () => {
+            const all = getTasks();
+            const match = all.find(t => t.text === task.text && t.type === task.type);
+            match.text = input.value;
+            saveTasks(all);
+            renderTasks();
+          };
+        };
+
+        const content = document.createElement("div");
+        content.className = "task-content";
+        content.appendChild(checkbox);
+        content.appendChild(span);
+
+        const actions = document.createElement("div");
+        actions.className = "actions";
+        actions.appendChild(editBtn);
+        actions.appendChild(deleteBtn);
+
+        div.appendChild(content);
+        div.appendChild(actions);
         container.appendChild(div);
       });
     }
