@@ -1,812 +1,597 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Task Manager</title>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-    
-    * { 
-      box-sizing: border-box; 
-    }
-    
-    body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      margin: 0;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 100vh;
-      padding: 10px;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      position: relative;
-      overflow-x: hidden;
-    }
-    
-    body::before {
-      content: '';
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.02)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.02)"/><circle cx="50" cy="10" r="0.5" fill="rgba(255,255,255,0.01)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
-      pointer-events: none;
-      z-index: 1;
-    }
-    
-    body.dark {
-      background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
-    }
-    
-    body.dark::before {
-      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="darkgrain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.005)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.005)"/></pattern></defs><rect width="100" height="100" fill="url(%23darkgrain)"/></svg>');
-    }
-    
-    .container {
-      max-width: 1000px;
-      margin: 0 auto;
-      position: relative;
-      z-index: 2;
-    }
-    
-    .header {
-      text-align: center;
-      margin-bottom: 15px;
-      position: relative;
-    }
-    
-    .date-display {
-      background: rgba(255, 255, 255, 0.15);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      padding: 4px 12px;
-      border-radius: 15px;
-      display: inline-block;
-      font-size: 12px;
-      font-weight: 500;
-      color: white;
-      margin-bottom: 8px;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-    }
-    
-    body.dark .date-display {
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    
-    h1 {
-      font-size: 1.8rem;
-      font-weight: 700;
-      margin: 0;
-      background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-      letter-spacing: -0.02em;
-    }
-    
-    body.dark h1 {
-      background: linear-gradient(135deg, #ffffff 0%, #e0e0e0 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-    
-    .input-container {
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      border-radius: 15px;
-      padding: 15px;
-      margin-bottom: 15px;
-      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    
-    .input-container:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
-    }
-    
-    body.dark .input-container {
-      background: rgba(30, 30, 30, 0.8);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      color: #f0f0f0;
-    }
-    
-    .input-box {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    
-    .input-row {
-      display: flex;
-      gap: 8px;
-      align-items: stretch;
-    }
-    
-    .input-box input[type="text"] {
-      flex: 1;
-      padding: 10px 12px;
-      border: 2px solid rgba(102, 126, 234, 0.2);
-      border-radius: 10px;
-      font-size: 14px;
-      font-weight: 500;
-      background: rgba(255, 255, 255, 0.8);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      outline: none;
-    }
-    
-    .input-box input[type="text"]:focus {
-      border-color: #667eea;
-      background: rgba(255, 255, 255, 1);
-      transform: scale(1.01);
-      box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
-    }
-    
-    body.dark .input-box input[type="text"] {
-      background: rgba(40, 40, 40, 0.8);
-      border-color: rgba(255, 255, 255, 0.2);
-      color: #f0f0f0;
-    }
-    
-    body.dark .input-box input[type="text"]:focus {
-      background: rgba(50, 50, 50, 1);
-      border-color: #667eea;
-    }
-    
-    .controls {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-    
-    .type-options {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-    }
-    
-    .type-options label {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-weight: 500;
-      font-size: 13px;
-      cursor: pointer;
-      padding: 6px 10px;
-      border-radius: 8px;
-      transition: all 0.3s ease;
-      background: rgba(102, 126, 234, 0.1);
-    }
-    
-    .type-options label:hover {
-      background: rgba(102, 126, 234, 0.2);
-      transform: scale(1.05);
-    }
-    
-    .type-options input[type="radio"] {
-      accent-color: #667eea;
-      transform: scale(1.2);
-    }
-    
-    .button-group {
-      display: flex;
-      gap: 10px;
-    }
-    
-    .btn {
-      padding: 8px 14px;
-      border-radius: 10px;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      border: none;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      text-decoration: none;
-      position: relative;
-      overflow: hidden;
-    }
-    
-    .btn::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-      transition: left 0.5s;
-    }
-    
-    .btn:hover::before {
-      left: 100%;
-    }
-    
-    .btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-    }
-    
-    .add-btn { 
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
-    }
-    
-    .voice-btn { 
-      background: linear-gradient(135deg, #00b894 0%, #00a085 100%);
-      color: white;
-      box-shadow: 0 8px 20px rgba(0, 184, 148, 0.3);
-    }
-    
-    .dark-toggle {
-      position: fixed;
-      top: 15px;
-      right: 15px;
-      background: rgba(255, 255, 255, 0.2);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      font-size: 18px;
-      cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-    }
-    
-    .dark-toggle:hover {
-      transform: scale(1.1) rotate(180deg);
-      background: rgba(255, 255, 255, 0.3);
-    }
-    
-    .task-columns {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 15px;
-    }
-    
-    @media (max-width: 768px) {
-      .task-columns {
-        grid-template-columns: 1fr;
-        gap: 10px;
-      }
-      
-      .input-row {
-        flex-direction: column;
-      }
-      
-      .controls {
-        flex-direction: column;
-        align-items: stretch;
-      }
-      
-      .type-options {
-        justify-content: center;
-      }
-    }
-    
-    .section {
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      border-radius: 15px;
-      padding: 15px;
-      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      position: relative;
-      overflow: hidden;
-    }
-    
-    .section::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 3px;
-      border-radius: 15px 15px 0 0;
-    }
-    
-    #list-section::before {
-      background: linear-gradient(90deg, #4CAF50, #45a049);
-    }
-    
-    #reminder-section::before {
-      background: linear-gradient(90deg, #FF9800, #f57c00);
-    }
-    
-    .section:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
-    }
-    
-    body.dark .section {
-      background: rgba(30, 30, 30, 0.8);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    
-    .section h3 {
-      margin: 0 0 12px 0;
-      font-size: 1.1rem;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    
-    .task {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 8px;
-      background: rgba(255, 255, 255, 0.7);
-      margin-bottom: 6px;
-      border-radius: 10px;
-      font-size: 13px;
-      cursor: grab;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      border: 1px solid rgba(0, 0, 0, 0.05);
-      position: relative;
-      overflow: hidden;
-    }
-    
-    .task::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.1), transparent);
-      transition: left 0.5s;
-    }
-    
-    .task:hover::before {
-      left: 100%;
-    }
-    
-    .task:hover {
-      transform: translateY(-2px);
-      background: rgba(255, 255, 255, 0.9);
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-    }
-    
-    .task:active {
-      cursor: grabbing;
-      transform: scale(1.02);
-    }
-    
-    body.dark .task { 
-      background: rgba(40, 40, 40, 0.7);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    
-    body.dark .task:hover {
-      background: rgba(50, 50, 50, 0.9);
-    }
-    
-    .task-content { 
-      display: flex; 
-      align-items: center; 
-      gap: 8px; 
-      flex: 1; 
-    }
-    
-    .task-content input[type="checkbox"] {
-      accent-color: #667eea;
-      transform: scale(1.1);
-      cursor: pointer;
-    }
-    
-    .task span { 
-      font-size: 13px; 
-      font-weight: 500;
-      line-height: 1.3;
-    }
-    
-    .completed {
-      opacity: 0.6;
-      transform: scale(0.98);
-    }
-    
-    .completed span { 
-      text-decoration: line-through; 
-      color: #888; 
-    }
-    
-    .actions {
-      display: flex;
-      gap: 8px;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-    }
-    
-    .task:hover .actions {
-      opacity: 1;
-    }
-    
-    .actions button {
-      background: rgba(102, 126, 234, 0.1);
-      border: none;
-      font-size: 14px;
-      cursor: pointer;
-      padding: 6px;
-      border-radius: 8px;
-      transition: all 0.3s ease;
-      width: 28px;
-      height: 28px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    
-    .actions button:hover {
-      background: rgba(102, 126, 234, 0.2);
-      transform: scale(1.1);
-    }
-    
-    .edit-input {
-      border: 2px solid #667eea;
-      padding: 8px 12px;
-      font-size: 14px;
-      border-radius: 10px;
-      background: rgba(255, 255, 255, 0.9);
-      outline: none;
-      font-family: inherit;
-      font-weight: 500;
-    }
-    
-    .summary {
-      text-align: center;
-      font-size: 14px;
-      font-weight: 600;
-      margin-top: 15px;
-      padding: 12px;
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 15px;
-      color: white;
-    }
-    
-    .summary button {
-      background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
-      color: white;
-      border: none;
-      padding: 6px 12px;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 12px;
-      cursor: pointer;
-      margin-left: 10px;
-      transition: all 0.3s ease;
-    }
-    
-    .summary button:hover {
-      transform: scale(1.05);
-      box-shadow: 0 8px 20px rgba(255, 107, 107, 0.3);
-    }
-    
-    .priority-choose {
-      display: flex;
-      gap: 6px;
-    }
-    
-    .priority-dot {
-      width: 16px;
-      height: 16px;
-      border-radius: 50%;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      border: 2px solid rgba(255, 255, 255, 0.3);
-    }
-    
-    .priority-dot:hover {
-      transform: scale(1.2);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    }
-    
-    .priority-high { 
-      background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
-    }
-    
-    .priority-medium { 
-      background: linear-gradient(135deg, #feca57 0%, #ff9ff3 100%);
-    }
-    
-    .priority-low { 
-      background: linear-gradient(135deg, #48cab2 0%, #2dd4bf 100%);
-    }
-    
-    .fade-in {
-      animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-    
-    .pulse {
-      animation: pulse 2s infinite;
-    }
-    
-    @keyframes pulse {
-      0% {
-        box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.4);
-      }
-      70% {
-        box-shadow: 0 0 0 10px rgba(102, 126, 234, 0);
-      }
-      100% {
-        box-shadow: 0 0 0 0 rgba(102, 126, 234, 0);
-      }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weekly Food Schedule</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- Setup, Theming & Colors --- */
+        :root {
+            --bg-main: #f4f7f9;
+            --bg-card: #ffffff;
+            --bg-accent: #eef2f5;
+            --primary: #4a90e2;
+            --primary-light: #eaf2fc;
+            --primary-dark: #357ABD;
+            --text-primary: #1a202c;
+            --text-secondary: #5a677d;
+            --border-color: #dce4ed;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --radius: 12px;
+            
+            /* New Feature Colors */
+            --favorite: #ffc107;
+            --meal-breakfast: #f6c445;
+            --meal-lunch: #50c878;
+            --meal-dinner: #6a8ee7;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 1rem;
+        }
+
+        /* --- Main Layout & Header --- */
+        #app-container {
+            max-width: 1200px;
+            margin: auto;
+            display: grid;
+            gap: 1.5rem;
+        }
+        #app-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        #app-header h1 { color: var(--text-primary); margin: 0; }
+        #app-header .header-actions { display: flex; gap: 0.75rem; }
+
+        .section-card {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+        }
+
+        /* --- Today's Meals Bar --- */
+        .today-meal-item {
+            background: var(--bg-accent);
+            padding: 1rem;
+            border-radius: 10px;
+            border-left: 5px solid;
+        }
+        .today-meal-item[data-meal="Breakfast"] { border-color: var(--meal-breakfast); }
+        .today-meal-item[data-meal="Lunch"] { border-color: var(--meal-lunch); }
+        .today-meal-item[data-meal="Dinner"] { border-color: var(--meal-dinner); }
+        
+        #today-meals-bar {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            text-align: center;
+        }
+        .today-meal-item .meal-type {
+            font-weight: 600; font-size: 0.9rem;
+            color: var(--text-secondary); margin-bottom: 0.5rem;
+        }
+        .today-meal-item .meal-name {
+            font-weight: 600; font-size: 1.1rem;
+            color: var(--primary-dark);
+        }
+        .today-meal-item .meal-name.placeholder {
+            color: var(--text-secondary); font-style: italic; font-weight: 500;
+        }
+        
+        /* --- Planner Grid --- */
+        #planner-header {
+            display: flex; justify-content: space-between;
+            align-items: center; margin-bottom: 1rem;
+        }
+        #planner-grid {
+            display: grid; grid-template-columns: 80px repeat(7, 1fr);
+            gap: 6px;
+        }
+        .grid-header, .grid-cell, .grid-meal-label {
+            padding: 0.5rem; border-radius: 8px; text-align: center;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 600;
+        }
+        .grid-header { background-color: var(--bg-accent); }
+        .grid-header.today { background-color: var(--primary-dark); color: white; }
+        .grid-meal-label { background-color: var(--bg-accent); font-size: 0.9rem;}
+        .grid-cell {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-top: 4px solid;
+            min-height: 50px; cursor: pointer; transition: all 0.2s ease;
+            font-size: 0.9rem; color: var(--primary-dark);
+        }
+        .grid-cell[data-meal="Breakfast"] { border-top-color: var(--meal-breakfast); }
+        .grid-cell[data-meal="Lunch"] { border-top-color: var(--meal-lunch); }
+        .grid-cell[data-meal="Dinner"] { border-top-color: var(--meal-dinner); }
+
+        .grid-cell:hover {
+            transform: translateY(-2px); box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-color: var(--primary);
+        }
+        .grid-cell.placeholder {
+            color: var(--text-secondary); font-size: 1.5rem; font-weight: 400;
+        }
+        
+        /* --- Recipe Management --- */
+        #recipes-section { display: grid; grid-template-columns: 1fr 2fr; gap: 1.5rem; }
+        #add-recipe-form .form-group { margin-bottom: 1rem; }
+        #add-recipe-form label { font-weight: 600; margin-bottom: 0.5rem; display: block; }
+        #add-recipe-form input[type="text"] {
+            width: 100%; padding: 0.75rem; border: 1px solid var(--border-color);
+            border-radius: 8px; box-sizing: border-box; font-size: 1rem;
+        }
+        .radio-group { display: flex; gap: 1rem; }
+        .radio-group label {
+            display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem;
+            border: 1px solid var(--border-color); border-radius: 8px;
+            cursor: pointer; flex-grow: 1; justify-content: center; transition: all 0.2s ease;
+        }
+        .radio-group input[type="radio"]:checked + label { border-width: 2px; }
+        #cat-breakfast:checked + label { border-color: var(--meal-breakfast); background-color: #fff9e6; }
+        #cat-lunch-dinner:checked + label { border-color: var(--meal-lunch); background-color: #e6fcf0; }
+        .radio-group input[type="radio"] { display: none; }
+
+        #recipe-lists { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .recipe-list-box {
+            background: var(--bg-accent); padding: 1rem; border-radius: 10px;
+            height: 250px; overflow-y: auto;
+        }
+        .recipe-list-box h3 { margin-top: 0; margin-bottom: 1rem; }
+        .recipe-list-box .list-items { display: flex; flex-wrap: wrap; gap: 0.5rem; align-content: flex-start; }
+        .recipe-item {
+            background-color: var(--bg-card); color: var(--text-primary);
+            padding: 0.3rem 0.8rem; border-radius: 16px; font-size: 0.9rem;
+            font-weight: 500; display: flex; align-items: center; gap: 0.5rem;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        .favorite-star { cursor: pointer; color: var(--border-color); font-size: 1.2rem; transition: all 0.2s ease; }
+        .favorite-star.is-favorite { color: var(--favorite); transform: scale(1.2); }
+        .delete-recipe {
+            cursor: pointer; color: var(--text-secondary); font-weight: bold; font-size: 1rem;
+            line-height: 1; transition: color 0.2s ease;
+        }
+        .delete-recipe:hover { color: #e53e3e; }
+
+        /* --- General Components & Modal --- */
+        button, .button-like {
+            cursor: pointer; padding: 0.6rem 1.2rem; border: none;
+            border-radius: 8px; background-color: var(--primary); color: white;
+            font-size: 0.9rem; font-weight: 600; transition: background-color 0.2s;
+            text-decoration: none; display: inline-block;
+        }
+        button:hover, .button-like:hover { background-color: var(--primary-dark); }
+        .button-secondary { background-color: #dce4ed; color: var(--text-primary); }
+        .button-secondary:hover { background-color: #c8d3e0; }
+
+        .modal {
+            display: none; position: fixed; z-index: 1000; left: 0; top: 0;
+            width: 100%; height: 100%; overflow: auto; background-color: rgba(26,32,44,0.7);
+            align-items: center; justify-content: center;
+        }
+        .modal.active { display: flex; }
+        .modal-content {
+            background-color: var(--bg-card); margin: auto; padding: 2rem;
+            border-radius: var(--radius); width: 90%; max-width: 450px;
+            position: relative; box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .modal-close {
+            position: absolute; top: 1rem; right: 1.5rem; color: #aaa;
+            font-size: 28px; font-weight: bold; cursor: pointer;
+        }
+        #meal-select-list { max-height: 350px; overflow-y: auto; margin-top: 1rem; }
+        #meal-select-list .list-section-header {
+            font-size: 0.8rem; font-weight: 700; text-transform: uppercase;
+            color: var(--text-secondary); padding: 0.5rem; margin-top: 1rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+        #meal-select-list .list-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0.75rem 1rem; cursor: pointer; border-radius: 8px; margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        #meal-select-list .list-item:hover { background-color: var(--bg-accent); }
+        #meal-select-list .list-item.clear-option { color: #e53e3e; font-weight: 600; }
+        .recently-used-note { font-size: 0.8rem; color: #e53e3e; font-style: italic; }
+
+        .hidden { display: none; }
+        
+        /* --- Mobile Compatibility --- */
+        @media (max-width: 992px) {
+            #recipes-section { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 768px) {
+            #app-header { flex-direction: column; align-items: flex-start; }
+            #app-container { gap: 1rem; }
+            .section-card { padding: 1rem; }
+            #today-meals-bar { grid-template-columns: 1fr; }
+            #planner-grid { grid-template-columns: 50px repeat(7, 1fr); font-size: 0.8rem; }
+            .grid-cell { min-height: 40px; }
+            .grid-meal-label { font-size: 0.7rem; padding: 0.2rem; }
+            #planner-header { flex-direction: column; gap: 0.5rem; align-items: stretch; }
+            #recipe-lists { grid-template-columns: 1fr; }
+            .recipe-list-box { height: 200px; }
+        }
+    </style>
 </head>
 <body>
-  <button class="dark-toggle" onclick="toggleDarkMode()">🌓</button>
-  
-  <div class="container">
-    <div class="header">
-      <div class="date-display" id="dateDisplay"></div>
-      <h1>🗂️ Life Task Manager</h1>
-    </div>
-    
-    <div class="input-container">
-      <div class="input-box">
-        <div class="input-row">
-          <input type="text" id="task-input" placeholder="Add a new task...">
+    <main id="app-container">
+        <header id="app-header">
+            <h1>Weekly Food Schedule</h1>
+            <div class="header-actions">
+                <button class="button-secondary" onclick="app.exportData()">Export Data</button>
+                <label for="import-file" class="button-like button-secondary">Import Data</label>
+                <input type="file" id="import-file" class="hidden" accept=".json" onchange="app.importData(event)">
+            </div>
+        </header>
+        
+        <div id="today-view" class="section-card">
+            <h2 style="text-align:center; margin-bottom: 1rem;">Today's Meals (<span id="today-date-span"></span>)</h2>
+            <div id="today-meals-bar"></div>
         </div>
-        <div class="controls">
-          <div class="type-options">
-            <label><input type="radio" name="task-type" value="list" checked> 📝 List</label>
-            <label><input type="radio" name="task-type" value="reminder"> ⏰ Reminder</label>
-          </div>
-          <div class="button-group">
-            <button class="btn add-btn" id="add-task">
-              <span>➕</span> Add Task
-            </button>
-            <button class="btn voice-btn" onclick="startVoiceInput()">
-              <span>🎤</span> Voice
-            </button>
-          </div>
+
+        <div id="planner-view" class="section-card">
+            <div id="planner-header">
+                <h2>Weekly Planner</h2>
+                <button class="button-secondary" onclick="app.promptClearWeek()">Clear Week</button>
+            </div>
+            <div id="planner-grid"></div>
         </div>
-      </div>
+
+        <section id="recipes-section">
+            <div id="add-recipe-card" class="section-card">
+                <h2>Add a Recipe</h2>
+                <form id="add-recipe-form" onsubmit="app.handleAddRecipe(event)">
+                    <div class="form-group">
+                        <label for="recipe-name">Name</label>
+                        <input type="text" id="recipe-name" placeholder="e.g., Poha" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Category</label>
+                        <div class="radio-group">
+                             <input type="radio" id="cat-breakfast" name="category" value="Breakfast" checked>
+                             <label for="cat-breakfast">Breakfast</label>
+                             <input type="radio" id="cat-lunch-dinner" name="category" value="Lunch/Dinner">
+                             <label for="cat-lunch-dinner">Lunch/Dinner</label>
+                        </div>
+                    </div>
+                    <button type="submit">+ Add Recipe</button>
+                </form>
+            </div>
+
+            <div id="recipe-lists" class="section-card">
+                 <div class="recipe-list-box">
+                    <h3>Breakfast</h3>
+                    <div class="list-items" id="breakfast-recipes"></div>
+                </div>
+                <div class="recipe-list-box">
+                    <h3>Lunch & Dinner</h3>
+                    <div class="list-items" id="lunch-dinner-recipes"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div id="meal-select-modal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="app.closeMealSelectModal()">&times;</span>
+            <h2 id="meal-select-title">Select a Meal</h2>
+            <div id="meal-select-list"></div>
+        </div>
     </div>
 
-    <div class="task-columns">
-      <div class="section" id="list-section">
-        <h3>🛒 Lists</h3>
-        <div id="list-tasks"></div>
-      </div>
-      <div class="section" id="reminder-section">
-        <h3>🔔 Reminders</h3>
-        <div id="reminder-tasks"></div>
-      </div>
-    </div>
-
-    <div class="summary" id="summary"></div>
-  </div>
-
-  <script>
-    const input = document.getElementById("task-input");
-    const addBtn = document.getElementById("add-task");
-    const summary = document.getElementById("summary");
-    let lastDeletedTask = null;
-
-    input.addEventListener("keypress", (e) => { if (e.key === "Enter") addTask(); });
-    addBtn.onclick = () => addTask();
-
-    function toggleDarkMode() {
-      document.body.classList.toggle("dark");
-    }
-
-    function startVoiceInput() {
-      if (!('webkitSpeechRecognition' in window)) return alert("Speech recognition not supported in this browser");
-      const recognition = new webkitSpeechRecognition();
-      recognition.lang = 'en-US';
-      recognition.start();
-      recognition.onresult = (e) => {
-        input.value = e.results[0][0].transcript;
-        input.focus();
-        input.classList.add('pulse');
-        setTimeout(() => input.classList.remove('pulse'), 2000);
-      };
-    }
-
-    function addTask() {
-      const text = input.value.trim();
-      const type = document.querySelector('input[name="task-type"]:checked').value;
-      if (!text) return;
-      const tasks = getTasks();
-      const task = { text, done: false, type };
-      if (type === "reminder") task.priority = null;
-      tasks.push(task);
-      saveTasks(tasks);
-      input.value = "";
-      renderTasks();
-    }
-
-    function getTasks() {
-      return JSON.parse(localStorage.getItem("tasks") || "[]");
-    }
-
-    function saveTasks(tasks) {
-      localStorage.setItem("tasks", JSON.stringify(tasks));
-    }
-
-    function renderTasks() {
-      const tasks = getTasks();
-      const lists = tasks.filter(t => t.type === "list");
-      const reminders = tasks.filter(t => t.type === "reminder");
-      renderSection("list-tasks", lists, "list");
-      renderSection("reminder-tasks", reminders, "reminder");
-      const completed = tasks.filter(t => t.done).length;
-      const pending = tasks.length - completed;
-      summary.innerHTML = `✅ ${completed} completed • ⏳ ${pending} remaining ${lastDeletedTask ? "<button onclick='undoDelete()'>↩️ Undo Delete</button>" : ""}`;
-    }
-
-    function renderSection(containerId, tasks, type) {
-      const container = document.getElementById(containerId);
-      container.innerHTML = "";
-      tasks.forEach((task, index) => {
-        const div = document.createElement("div");
-        div.className = "task fade-in" + (task.done ? " completed" : "");
-        div.draggable = true;
-
-        const span = document.createElement("span");
-        span.textContent = task.text;
-
-        const checkbox = document.createElement("input");
-        checkbox.type = "checkbox";
-        checkbox.checked = task.done;
-        checkbox.onchange = () => {
-          const all = getTasks();
-          const match = all.find(t => t.text === task.text && t.type === task.type);
-          match.done = checkbox.checked;
-          saveTasks(all);
-          renderTasks();
-        };
-
-        const deleteBtn = document.createElement("button");
-        deleteBtn.innerHTML = "🗑️";
-        deleteBtn.onclick = () => {
-          lastDeletedTask = task;
-          const all = getTasks().filter(t => !(t.text === task.text && t.type === task.type));
-          saveTasks(all);
-          renderTasks();
-        };
-
-        const editBtn = document.createElement("button");
-        editBtn.innerHTML = "✏️";
-        editBtn.onclick = () => {
-          const inputBox = document.createElement("input");
-          inputBox.value = task.text;
-          inputBox.className = "edit-input";
-          span.replaceWith(inputBox);
-          inputBox.focus();
-          inputBox.onblur = () => {
-            const all = getTasks();
-            const match = all.find(t => t.text === task.text && t.type === task.type);
-            match.text = inputBox.value;
-            saveTasks(all);
-            renderTasks();
-          };
-          inputBox.onkeypress = (e) => {
-            if (e.key === "Enter") inputBox.blur();
-          };
-        };
-
-        const content = document.createElement("div");
-        content.className = "task-content";
-        content.appendChild(checkbox);
-        content.appendChild(span);
-
-        const actions = document.createElement("div");
-        actions.className = "actions";
-        actions.appendChild(editBtn);
-        actions.appendChild(deleteBtn);
-
-        div.appendChild(content);
-        if (type === "reminder") {
-          if (!task.priority) {
-            const choose = document.createElement("div");
-            choose.className = "priority-choose";
-            ["high", "medium", "low"].forEach(p => {
-              const dot = document.createElement("div");
-              dot.className = `priority-dot priority-${p}`;
-              dot.title = `${p.charAt(0).toUpperCase() + p.slice(1)} Priority`;
-              dot.onclick = () => {
-                const all = getTasks();
-                const match = all.find(t => t.text === task.text && t.type === task.type);
-                match.priority = p;
-                saveTasks(all);
-                renderTasks();
-              };
-              choose.appendChild(dot);
-            });
-            content.appendChild(choose);
-          } else {
-            const dot = document.createElement("div");
-            dot.className = `priority-dot priority-${task.priority}`;
-            dot.title = `${task.priority.charAt(0).toUpperCase() + task.priority.slice(1)} Priority`;
-            content.appendChild(dot);
-          }
+    <script>
+    class WeeklyFoodScheduleApp {
+        constructor() {
+            this.state = {
+                recipes: [],
+                weekPlan: {},
+            };
+            this.days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+            this.meals = ["Breakfast", "Lunch", "Dinner"];
+            this.currentMealSlot = null;
+            this.RECENT_THRESHOLD = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
         }
-        div.appendChild(actions);
 
-        div.addEventListener("dragstart", (e) => {
-          e.dataTransfer.setData("text/plain", JSON.stringify({ text: task.text, type: task.type }));
-          div.style.opacity = "0.5";
-        });
+        init() {
+            this.loadData();
+            this.checkAndResetWeek();
+            this.render();
+        }
         
-        div.addEventListener("dragend", (e) => {
-          div.style.opacity = "1";
-        });
-        
-        div.addEventListener("dragover", (e) => {
-          e.preventDefault();
-          div.style.background = "rgba(102, 126, 234, 0.1)";
-        });
-        
-        div.addEventListener("dragleave", (e) => {
-          div.style.background = "";
-        });
-        
-        div.addEventListener("drop", (e) => {
-          e.preventDefault();
-          div.style.background = "";
-          const draggedData = JSON.parse(e.dataTransfer.getData("text"));
-          const all = getTasks();
-          const draggedIndex = all.findIndex(t => t.text === draggedData.text && t.type === draggedData.type);
-          const targetIndex = all.findIndex(t => t.text === task.text && t.type === task.type);
-          const [moved] = all.splice(draggedIndex, 1);
-          all.splice(targetIndex, 0, moved);
-          saveTasks(all);
-          renderTasks();
-        });
+        saveData() {
+            localStorage.setItem('foodScheduleDataV2', JSON.stringify(this.state));
+        }
 
-        container.appendChild(div);
-      });
+        loadData() {
+            const data = localStorage.getItem('foodScheduleDataV2');
+            if (data) {
+                const parsedData = JSON.parse(data);
+                this.state = {
+                    ...parsedData,
+                    recipes: parsedData.recipes || [],
+                    weekPlan: parsedData.weekPlan || {}
+                };
+            }
+        }
+        
+        checkAndResetWeek() {
+            const todayDay = new Date().getDay();
+            const lastVisitDay = localStorage.getItem('lastVisitDayV2');
+            if (lastVisitDay && todayDay === 0 && todayDay !== parseInt(lastVisitDay, 10)) {
+                this.clearWeekPlan(false);
+            }
+            localStorage.setItem('lastVisitDayV2', todayDay.toString());
+        }
+
+        render() {
+            this.renderTodayBar();
+            this.renderPlanner();
+            this.renderRecipes();
+        }
+        
+        renderTodayBar() {
+            const container = document.getElementById('today-meals-bar');
+            const todayStr = this.days[new Date().getDay()];
+            document.getElementById('today-date-span').textContent = todayStr;
+            container.innerHTML = '';
+
+            this.meals.forEach(meal => {
+                const key = `${todayStr}-${meal}`;
+                const recipeId = this.state.weekPlan[key];
+                const recipe = recipeId ? this.state.recipes.find(r => r.id === recipeId) : null;
+
+                const item = document.createElement('div');
+                item.className = 'today-meal-item';
+                item.dataset.meal = meal;
+                item.innerHTML = `
+                    <div class="meal-type">${meal}</div>
+                    <div class="meal-name ${!recipe ? 'placeholder' : ''}">${recipe ? recipe.name : 'Not Set'}</div>
+                `;
+                container.appendChild(item);
+            });
+        }
+        
+        renderPlanner() {
+            const grid = document.getElementById('planner-grid');
+            grid.innerHTML = '';
+            const today = new Date().getDay();
+
+            grid.appendChild(document.createElement('div')); // Empty corner
+            this.days.forEach(day => {
+                const header = document.createElement('div');
+                header.className = 'grid-header';
+                header.textContent = day.substring(0, 3);
+                if (this.days.indexOf(day) === today) header.classList.add('today');
+                grid.appendChild(header);
+            });
+
+            this.meals.forEach(meal => {
+                const mealLabel = document.createElement('div');
+                mealLabel.className = 'grid-meal-label';
+                mealLabel.textContent = meal;
+                grid.appendChild(mealLabel);
+
+                this.days.forEach(day => {
+                    const cell = document.createElement('div');
+                    const cellKey = `${day}-${meal}`;
+                    cell.className = 'grid-cell';
+                    cell.dataset.key = cellKey;
+                    cell.dataset.meal = meal;
+                    
+                    const recipeId = this.state.weekPlan[cellKey];
+                    const recipe = recipeId ? this.state.recipes.find(r => r.id === recipeId) : null;
+                    
+                    if (recipe) {
+                        cell.textContent = recipe.name;
+                    } else {
+                        cell.textContent = '+';
+                        cell.classList.add('placeholder');
+                        if (recipeId) { delete this.state.weekPlan[cellKey]; this.saveData(); }
+                    }
+                    cell.onclick = () => this.openMealSelectModal(meal, cellKey);
+                    grid.appendChild(cell);
+                });
+            });
+        }
+        
+        renderRecipes() {
+            const breakfastList = document.getElementById('breakfast-recipes');
+            const lunchDinnerList = document.getElementById('lunch-dinner-recipes');
+            breakfastList.innerHTML = '';
+            lunchDinnerList.innerHTML = '';
+
+            this.state.recipes.forEach(recipe => {
+                const recipeEl = document.createElement('div');
+                recipeEl.className = 'recipe-item';
+                recipeEl.innerHTML = `
+                    <span class="favorite-star ${recipe.isFavorite ? 'is-favorite' : ''}" onclick="event.stopPropagation(); app.toggleFavorite('${recipe.id}')">★</span>
+                    <span>${recipe.name}</span>
+                    <span class="delete-recipe" onclick="event.stopPropagation(); app.deleteRecipe('${recipe.id}')">&times;</span>
+                `;
+                if (recipe.category === 'Breakfast') {
+                    breakfastList.appendChild(recipeEl);
+                } else {
+                    lunchDinnerList.appendChild(recipeEl);
+                }
+            });
+        }
+
+        handleAddRecipe(event) {
+            event.preventDefault();
+            const nameInput = document.getElementById('recipe-name');
+            const name = nameInput.value.trim();
+            if (!name) return;
+
+            const newRecipe = {
+                id: `recipe_${Date.now()}`,
+                name: name,
+                category: document.querySelector('input[name="category"]:checked').value,
+                isFavorite: false,
+                lastUsed: null
+            };
+
+            this.state.recipes.push(newRecipe);
+            this.state.recipes.sort((a, b) => a.name.localeCompare(b.name));
+            this.saveData();
+            this.renderRecipes();
+            nameInput.value = '';
+            nameInput.focus();
+        }
+
+        deleteRecipe(recipeId) {
+            if (!confirm("Are you sure you want to delete this recipe?")) return;
+            this.state.recipes = this.state.recipes.filter(r => r.id !== recipeId);
+            Object.keys(this.state.weekPlan).forEach(key => {
+                if (this.state.weekPlan[key] === recipeId) { delete this.state.weekPlan[key]; }
+            });
+            this.saveData();
+            this.render();
+        }
+        
+        toggleFavorite(recipeId) {
+            const recipe = this.state.recipes.find(r => r.id === recipeId);
+            if(recipe) {
+                recipe.isFavorite = !recipe.isFavorite;
+                this.saveData();
+                this.renderRecipes();
+            }
+        }
+
+        openMealSelectModal(mealCategory, cellKey) {
+            this.currentMealSlot = cellKey;
+            const list = document.getElementById('meal-select-list');
+            list.innerHTML = '';
+            document.getElementById('meal-select-title').textContent = `Select ${mealCategory}`;
+            
+            const targetCategory = mealCategory === 'Breakfast' ? 'Breakfast' : 'Lunch/Dinner';
+            const relevantRecipes = this.state.recipes.filter(r => r.category === targetCategory);
+            
+            const favorites = relevantRecipes.filter(r => r.isFavorite);
+            const others = relevantRecipes.filter(r => !r.isFavorite);
+            const now = Date.now();
+
+            const renderRecipeItem = (recipe) => {
+                const item = document.createElement('div');
+                item.className = 'list-item';
+                item.onclick = () => this.selectMeal(recipe.id);
+                
+                const isRecent = recipe.lastUsed && (now - recipe.lastUsed < this.RECENT_THRESHOLD);
+                item.innerHTML = `
+                    <span>${recipe.name}</span>
+                    ${isRecent ? '<span class="recently-used-note">Recently Used</span>' : ''}
+                `;
+                return item;
+            };
+            
+            if (favorites.length > 0) {
+                const header = document.createElement('div');
+                header.className = 'list-section-header';
+                header.textContent = 'Favorites';
+                list.appendChild(header);
+                favorites.forEach(r => list.appendChild(renderRecipeItem(r)));
+            }
+            if (others.length > 0) {
+                 const header = document.createElement('div');
+                header.className = 'list-section-header';
+                header.textContent = 'All';
+                list.appendChild(header);
+                others.forEach(r => list.appendChild(renderRecipeItem(r)));
+            }
+
+            const clearOption = document.createElement('div');
+            clearOption.textContent = '-- Clear Meal --';
+            clearOption.className = 'list-item clear-option';
+            clearOption.onclick = () => this.selectMeal(null);
+            list.prepend(clearOption);
+            
+            document.getElementById('meal-select-modal').classList.add('active');
+        }
+
+        closeMealSelectModal() {
+            document.getElementById('meal-select-modal').classList.remove('active');
+        }
+
+        selectMeal(recipeId) {
+            if (this.currentMealSlot) {
+                if (recipeId) {
+                    this.state.weekPlan[this.currentMealSlot] = recipeId;
+                    const recipe = this.state.recipes.find(r => r.id === recipeId);
+                    if (recipe) recipe.lastUsed = Date.now();
+                } else {
+                    delete this.state.weekPlan[this.currentMealSlot];
+                }
+                this.saveData();
+                this.render();
+            }
+            this.closeMealSelectModal();
+        }
+        
+        promptClearWeek() {
+            if (confirm('Are you sure you want to clear all meals for the week?')) this.clearWeekPlan(true);
+        }
+        
+        clearWeekPlan(isManual) {
+            this.state.weekPlan = {};
+            this.saveData();
+            this.render();
+            if (isManual) alert('Weekly plan has been cleared.');
+        }
+
+        exportData() {
+            const dataStr = JSON.stringify(this.state, null, 2);
+            const blob = new Blob([dataStr], {type: "application/json"});
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `weekly-food-schedule-backup-${new Date().toISOString().slice(0,10)}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            if (!confirm('This will overwrite all your current data. Are you sure?')) {
+                event.target.value = null;
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const importedState = JSON.parse(e.target.result);
+                    if (importedState.recipes && importedState.weekPlan) {
+                        this.state = importedState;
+                        this.saveData();
+                        this.render();
+                        alert('Data imported successfully!');
+                    } else { throw new Error('Invalid file structure.'); }
+                } catch (error) {
+                    alert('Error: Could not import data. Please ensure the file is a valid backup.');
+                } finally {
+                    event.target.value = null;
+                }
+            };
+            reader.readAsText(file);
+        }
     }
 
-    function undoDelete() {
-      if (lastDeletedTask) {
-        const all = getTasks();
-        all.push(lastDeletedTask);
-        saveTasks(all);
-        lastDeletedTask = null;
-        renderTasks();
-      }
-    }
-
-    function updateDate() {
-      const date = new Date();
-      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-      document.getElementById("dateDisplay").textContent = date.toLocaleDateString(undefined, options);
-    }
-
-    updateDate();
-    renderTasks();
-  </script>
+    const app = new WeeklyFoodScheduleApp();
+    document.addEventListener('DOMContentLoaded', () => app.init());
+    </script>
 </body>
 </html>
